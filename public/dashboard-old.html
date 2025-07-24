@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Finance Control</title>
+    <link rel="stylesheet" href="/css/auth.css">
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card.income {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+
+        .stat-card.expense {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        }
+
+        .stat-card h3 {
+            margin: 0;
+            font-size: 2em;
+        }
+
+        .stat-card p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+
+        .categories-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .category-list {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .category-list h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+
+        .category-item.income {
+            border-left-color: #4CAF50;
+        }
+
+        .category-item.expense {
+            border-left-color: #f44336;
+        }
+
+        .category-item.global {
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        .category-icon {
+            font-size: 1.2em;
+            margin-right: 10px;
+        }
+
+        .category-type {
+            font-size: 0.8em;
+            padding: 2px 8px;
+            border-radius: 12px;
+            color: white;
+        }
+
+        .category-type.income {
+            background: #4CAF50;
+        }
+
+        .category-type.expense {
+            background: #f44336;
+        }
+
+        .create-category-form {
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .form-row input, .form-row select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        .btn.success {
+            background: #28a745;
+        }
+
+        .btn.success:hover {
+            background: #1e7e34;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .categories-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>💰 Dashboard Financeiro</h1>
+            <div>
+                <span id="user-info">Carregando...</span>
+                <button class="btn" onclick="logout()" style="margin-left: 15px;">Sair</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3 id="total-categories">-</h3>
+                <p>Total de Categorias</p>
+            </div>
+            <div class="stat-card income">
+                <h3 id="income-categories">-</h3>
+                <p>Categorias de Receita</p>
+            </div>
+            <div class="stat-card expense">
+                <h3 id="expense-categories">-</h3>
+                <p>Categorias de Despesa</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="user-categories">-</h3>
+                <p>Minhas Categorias</p>
+            </div>
+        </div>
+
+        <div class="categories-section">
+            <div>
+                <div class="category-list">
+                    <h3>🌍 Categorias Globais (Primeiras 10)</h3>
+                    <div id="global-categories" class="loading">Carregando categorias globais...</div>
+                </div>
+                
+                <div class="category-list" style="margin-top: 20px;">
+                    <h3>👤 Minhas Categorias</h3>
+                    <div id="user-categories-list" class="loading">Carregando suas categorias...</div>
+                </div>
+            </div>
+
+            <div>
+                <div class="create-category-form">
+                    <h3>➕ Criar Nova Categoria</h3>
+                    <div id="create-message"></div>
+                    
+                    <form id="create-category-form">
+                        <div class="form-row">
+                            <input type="text" id="category-name" placeholder="Nome da categoria" required>
+                            <select id="category-type" required>
+                                <option value="">Selecione o tipo</option>
+                                <option value="INCOME">💰 Receita</option>
+                                <option value="EXPENSE">💸 Despesa</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-row">
+                            <input type="text" id="category-icon" placeholder="Ícone (emoji)" maxlength="2">
+                            <input type="color" id="category-color" value="#007bff">
+                        </div>
+                        
+                        <button type="submit" class="btn success">Criar Categoria</button>
+                    </form>
+                </div>
+
+                <div class="category-list" style="margin-top: 20px;">
+                    <h3>📊 Resumo do Sistema</h3>
+                    <div class="category-item">
+                        <span>🌍 <strong>Sistema Híbrido:</strong> 47 categorias globais + suas categorias personalizadas</span>
+                    </div>
+                    <div class="category-item">
+                        <span>⚡ <strong>Performance:</strong> 99% menos registros no banco de dados</span>
+                    </div>
+                    <div class="category-item">
+                        <span>🎨 <strong>Flexibilidade:</strong> Crie categorias personalizadas quando precisar</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado da aplicação
+        let userToken = localStorage.getItem('authToken');
+        let currentUser = null;
+        let categories = {
+            global: [],
+            user: [],
+            stats: {}
+        };
+
+        // Verificar se está logado
+        if (!userToken) {
+            window.location.href = '/login.html';
+        }
+
+        // Funções de API
+        async function fetchWithAuth(url, options = {}) {
+            const config = {
+                ...options,
+                headers: {
+                    'Authorization': `Bearer ${userToken}`,
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            };
+
+            const response = await fetch(url, config);
+            
+            if (response.status === 401) {
+                logout();
+                return null;
+            }
+
+            return response;
+        }
+
+        async function loadUserInfo() {
+            try {
+                // Decodificar token para obter info do usuário
+                const payload = JSON.parse(atob(userToken.split('.')[1]));
+                currentUser = payload;
+                document.getElementById('user-info').textContent = `👋 ${payload.email}`;
+            } catch (error) {
+                console.error('Erro ao decodificar token:', error);
+                logout();
+            }
+        }
+
+        async function loadCategoryStats() {
+            try {
+                const response = await fetchWithAuth('/api/categories/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    categories.stats = data.data;
+                    
+                    document.getElementById('total-categories').textContent = data.data.total;
+                    document.getElementById('income-categories').textContent = data.data.income;
+                    document.getElementById('expense-categories').textContent = data.data.expense;
+                    document.getElementById('user-categories').textContent = data.data.user;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        async function loadGlobalCategories() {
+            try {
+                const response = await fetchWithAuth('/api/categories/global');
+                const data = await response.json();
+                
+                if (data.success) {
+                    categories.global = data.data;
+                    displayGlobalCategories(data.data.slice(0, 10)); // Mostrar apenas 10
+                }
+            } catch (error) {
+                console.error('Erro ao carregar categorias globais:', error);
+                document.getElementById('global-categories').innerHTML = '<div class="error">Erro ao carregar categorias globais</div>';
+            }
+        }
+
+        async function loadUserCategories() {
+            try {
+                const response = await fetchWithAuth('/api/categories/user');
+                const data = await response.json();
+                
+                if (data.success) {
+                    categories.user = data.data;
+                    displayUserCategories(data.data);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar categorias do usuário:', error);
+                document.getElementById('user-categories-list').innerHTML = '<div class="error">Erro ao carregar suas categorias</div>';
+            }
+        }
+
+        function displayGlobalCategories(categoriesList) {
+            const container = document.getElementById('global-categories');
+            
+            if (categoriesList.length === 0) {
+                container.innerHTML = '<div class="category-item">Nenhuma categoria global encontrada</div>';
+                return;
+            }
+
+            container.innerHTML = categoriesList.map(category => `
+                <div class="category-item global ${category.type.toLowerCase()}">
+                    <span>
+                        <span class="category-icon">${category.icon || '📁'}</span>
+                        ${category.name}
+                    </span>
+                    <span class="category-type ${category.type.toLowerCase()}">${category.type === 'INCOME' ? 'Receita' : 'Despesa'}</span>
+                </div>
+            `).join('');
+        }
+
+        function displayUserCategories(categoriesList) {
+            const container = document.getElementById('user-categories-list');
+            
+            if (categoriesList.length === 0) {
+                container.innerHTML = '<div class="category-item">Você ainda não criou categorias personalizadas</div>';
+                return;
+            }
+
+            container.innerHTML = categoriesList.map(category => `
+                <div class="category-item ${category.type.toLowerCase()}">
+                    <span>
+                        <span class="category-icon">${category.icon || '📁'}</span>
+                        ${category.name}
+                    </span>
+                    <span class="category-type ${category.type.toLowerCase()}">${category.type === 'INCOME' ? 'Receita' : 'Despesa'}</span>
+                </div>
+            `).join('');
+        }
+
+        async function createCategory(categoryData) {
+            try {
+                const response = await fetchWithAuth('/api/categories', {
+                    method: 'POST',
+                    body: JSON.stringify(categoryData)
+                });
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Erro ao criar categoria:', error);
+                return { success: false, message: 'Erro de conexão' };
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('create-category-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('category-name').value;
+            const type = document.getElementById('category-type').value;
+            const icon = document.getElementById('category-icon').value;
+            const color = document.getElementById('category-color').value;
+            
+            const messageDiv = document.getElementById('create-message');
+            messageDiv.innerHTML = '<div class="loading">Criando categoria...</div>';
+            
+            const result = await createCategory({ name, type, icon, color });
+            
+            if (result.success) {
+                messageDiv.innerHTML = '<div class="success">Categoria criada com sucesso!</div>';
+                document.getElementById('create-category-form').reset();
+                
+                // Recarregar dados
+                await loadUserCategories();
+                await loadCategoryStats();
+                
+                setTimeout(() => {
+                    messageDiv.innerHTML = '';
+                }, 3000);
+            } else {
+                messageDiv.innerHTML = `<div class="error">${result.message}</div>`;
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            window.location.href = '/login.html';
+        }
+
+        // Inicializar página
+        async function initDashboard() {
+            await loadUserInfo();
+            await loadCategoryStats();
+            await loadGlobalCategories();
+            await loadUserCategories();
+        }
+
+        // Inicializar quando a página carregar
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importar Extratos - Finance Control</title>
+    <link rel="stylesheet" href="css/dashboard-base.css">
+    <link rel="stylesheet" href="css/import.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Finance Control</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="transactions.html" class="nav-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Transações</span>
+                </a>
+                <a href="accounts.html" class="nav-item">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Contas</span>
+                </a>
+                <a href="categories.html" class="nav-item">
+                    <i class="fas fa-tags"></i>
+                    <span>Categorias</span>
+                </a>
+                <a href="reports.html" class="nav-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Relatórios</span>
+                </a>
+                <a href="import.html" class="nav-item active">
+                    <i class="fas fa-file-import"></i>
+                    <span>Importar</span>
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configurações</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Usuário</div>
+                        <div class="user-email" id="userEmail">user@email.com</div>
+                    </div>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="page-header">
+                <div class="page-title">
+                    <h1><i class="fas fa-file-import"></i> Importar Extratos</h1>
+                    <p>Importe extratos bancários, faturas de cartão e outros arquivos financeiros</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-outline" onclick="showHistory()">
+                        <i class="fas fa-history"></i>
+                        Histórico
+                    </button>
+                    <button class="btn btn-outline" onclick="showTemplates()">
+                        <i class="fas fa-file-alt"></i>
+                        Modelos
+                    </button>
+                </div>
+            </header>
+
+            <!-- Import Options -->
+            <div class="import-options">
+                <div class="option-card" onclick="selectImportType('bank')">
+                    <div class="option-icon">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <h3>Extrato Bancário</h3>
+                    <p>Importe extratos em PDF, CSV ou OFX de bancos como Itaú, Bradesco, Santander, etc.</p>
+                    <div class="option-formats">
+                        <span class="format-tag">PDF</span>
+                        <span class="format-tag">CSV</span>
+                        <span class="format-tag">OFX</span>
+                    </div>
+                </div>
+
+                <div class="option-card" onclick="selectImportType('credit')">
+                    <div class="option-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h3>Fatura de Cartão</h3>
+                    <p>Importe faturas de cartão de crédito em PDF ou CSV com categorização automática.</p>
+                    <div class="option-formats">
+                        <span class="format-tag">PDF</span>
+                        <span class="format-tag">CSV</span>
+                    </div>
+                </div>
+
+                <div class="option-card" onclick="selectImportType('manual')">
+                    <div class="option-icon">
+                        <i class="fas fa-table"></i>
+                    </div>
+                    <h3>Planilha Manual</h3>
+                    <p>Importe dados de planilhas Excel ou CSV criadas manualmente.</p>
+                    <div class="option-formats">
+                        <span class="format-tag">XLSX</span>
+                        <span class="format-tag">CSV</span>
+                    </div>
+                </div>
+
+                <div class="option-card" onclick="selectImportType('investment')">
+                    <div class="option-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Investimentos</h3>
+                    <p>Importe extratos de corretoras e relatórios de investimentos.</p>
+                    <div class="option-formats">
+                        <span class="format-tag">PDF</span>
+                        <span class="format-tag">CSV</span>
+                        <span class="format-tag">XLS</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Section -->
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-header">
+                    <h2 id="uploadTitle">Importar Arquivo</h2>
+                    <p id="uploadDescription">Selecione o arquivo que deseja importar</p>
+                </div>
+
+                <!-- File Upload Area -->
+                <div class="file-upload-area" id="fileUploadArea">
+                    <div class="upload-dropzone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h3>Arraste o arquivo aqui ou clique para selecionar</h3>
+                        <p>Formatos suportados: <span id="supportedFormats">PDF, CSV, OFX, XLSX</span></p>
+                        <p class="upload-limit">Tamanho máximo: 10MB</p>
+                        <input type="file" id="fileInput" accept=".pdf,.csv,.ofx,.xlsx,.xls" multiple style="display: none;">
+                        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-folder-open"></i>
+                            Selecionar Arquivos
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Selected Files -->
+                <div class="selected-files" id="selectedFiles">
+                    <!-- Files will be displayed here -->
+                </div>
+
+                <!-- Import Configuration -->
+                <div class="import-config" id="importConfig">
+                    <h3>Configurações de Importação</h3>
+                    
+                    <div class="config-row">
+                        <div class="form-group">
+                            <label for="targetAccount">Conta de Destino *</label>
+                            <select id="targetAccount" class="form-control" required>
+                                <option value="">Selecione a conta</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="importMode">Modo de Importação</label>
+                            <select id="importMode" class="form-control">
+                                <option value="auto">Automático (com IA)</option>
+                                <option value="manual">Manual (revisar cada item)</option>
+                                <option value="preview">Apenas visualizar</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="config-row">
+                        <div class="form-group">
+                            <label for="dateFormat">Formato de Data</label>
+                            <select id="dateFormat" class="form-control">
+                                <option value="dd/mm/yyyy">DD/MM/AAAA</option>
+                                <option value="mm/dd/yyyy">MM/DD/AAAA</option>
+                                <option value="yyyy-mm-dd">AAAA-MM-DD</option>
+                                <option value="auto">Detectar automaticamente</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="encoding">Codificação</label>
+                            <select id="encoding" class="form-control">
+                                <option value="utf-8">UTF-8</option>
+                                <option value="latin1">Latin-1</option>
+                                <option value="cp1252">Windows-1252</option>
+                                <option value="auto">Detectar automaticamente</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="config-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="skipDuplicates" checked>
+                            <span class="checkbox-custom"></span>
+                            Ignorar transações duplicadas
+                        </label>
+                        
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="categorizeAuto" checked>
+                            <span class="checkbox-custom"></span>
+                            Categorização automática por IA
+                        </label>
+                        
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="createCategories">
+                            <span class="checkbox-custom"></span>
+                            Criar categorias automaticamente se necessário
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="upload-actions" id="uploadActions">
+                    <button class="btn btn-outline" onclick="clearFiles()">
+                        <i class="fas fa-times"></i>
+                        Limpar
+                    </button>
+                    <button class="btn btn-primary" onclick="startImport()" id="importBtn" disabled>
+                        <i class="fas fa-upload"></i>
+                        Iniciar Importação
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="preview-section hidden" id="previewSection">
+                <div class="preview-header">
+                    <h2>Visualização dos Dados</h2>
+                    <p>Revise as transações antes de importar</p>
+                    <div class="preview-stats">
+                        <span class="preview-stat">
+                            <strong id="previewTotal">0</strong> transações encontradas
+                        </span>
+                        <span class="preview-stat">
+                            <strong id="previewValid">0</strong> válidas
+                        </span>
+                        <span class="preview-stat">
+                            <strong id="previewErrors">0</strong> com erros
+                        </span>
+                    </div>
+                </div>
+
+                <div class="preview-filters">
+                    <button class="filter-btn active" data-filter="all">Todas</button>
+                    <button class="filter-btn" data-filter="valid">Válidas</button>
+                    <button class="filter-btn" data-filter="errors">Com Erros</button>
+                    <button class="filter-btn" data-filter="duplicates">Duplicadas</button>
+                </div>
+
+                <div class="preview-table-container">
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="selectAll">
+                                        <span class="checkbox-custom"></span>
+                                    </label>
+                                </th>
+                                <th>Status</th>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                                <th>Categoria</th>
+                                <th>Observações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewTableBody">
+                            <!-- Preview data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="preview-actions">
+                    <button class="btn btn-outline" onclick="backToUpload()">
+                        <i class="fas fa-arrow-left"></i>
+                        Voltar
+                    </button>
+                    <button class="btn btn-secondary" onclick="downloadErrors()">
+                        <i class="fas fa-download"></i>
+                        Baixar Erros
+                    </button>
+                    <button class="btn btn-primary" onclick="confirmImport()">
+                        <i class="fas fa-check"></i>
+                        Confirmar Importação
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="progress-section hidden" id="progressSection">
+                <div class="progress-header">
+                    <h2>Importando Transações</h2>
+                    <p>Aguarde enquanto processamos seus dados...</p>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-circle">
+                        <svg class="progress-ring" width="120" height="120">
+                            <circle class="progress-ring-circle" stroke="#e2e8f0" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
+                            <circle class="progress-ring-fill" stroke="#3b82f6" stroke-width="8" fill="transparent" r="52" cx="60" cy="60" stroke-dasharray="326.73" stroke-dashoffset="326.73"/>
+                        </svg>
+                        <div class="progress-text">
+                            <span class="progress-percentage" id="progressPercentage">0%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-details">
+                        <div class="progress-step">
+                            <i class="fas fa-file-upload step-icon completed"></i>
+                            <span>Arquivo enviado</span>
+                        </div>
+                        <div class="progress-step">
+                            <i class="fas fa-cog step-icon processing"></i>
+                            <span id="currentStep">Processando dados...</span>
+                        </div>
+                        <div class="progress-step">
+                            <i class="fas fa-robot step-icon"></i>
+                            <span>Categorizando com IA</span>
+                        </div>
+                        <div class="progress-step">
+                            <i class="fas fa-database step-icon"></i>
+                            <span>Salvando transações</span>
+                        </div>
+                        <div class="progress-step">
+                            <i class="fas fa-check-circle step-icon"></i>
+                            <span>Importação concluída</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-stats">
+                    <div class="stat">
+                        <span class="stat-number" id="processedCount">0</span>
+                        <span class="stat-label">Processadas</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="successCount">0</span>
+                        <span class="stat-label">Importadas</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" id="errorCount">0</span>
+                        <span class="stat-label">Erros</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section hidden" id="resultsSection">
+                <div class="results-header">
+                    <div class="results-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h2>Importação Concluída!</h2>
+                    <p>Suas transações foram importadas com sucesso</p>
+                </div>
+
+                <div class="results-summary">
+                    <div class="summary-card">
+                        <div class="summary-number" id="totalImported">0</div>
+                        <div class="summary-label">Transações Importadas</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-number" id="totalSkipped">0</div>
+                        <div class="summary-label">Ignoradas (Duplicadas)</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-number" id="categoriesCreated">0</div>
+                        <div class="summary-label">Categorias Criadas</div>
+                    </div>
+                </div>
+
+                <div class="results-actions">
+                    <button class="btn btn-outline" onclick="importAnother()">
+                        <i class="fas fa-plus"></i>
+                        Importar Outro Arquivo
+                    </button>
+                    <button class="btn btn-secondary" onclick="viewImported()">
+                        <i class="fas fa-list"></i>
+                        Ver Transações
+                    </button>
+                    <button class="btn btn-primary" onclick="goToDashboard()">
+                        <i class="fas fa-chart-line"></i>
+                        Ir para Dashboard
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Templates Modal -->
+    <div class="modal" id="templatesModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-alt"></i> Modelos de Importação</h3>
+                <button class="modal-close" onclick="closeModal('templatesModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="templates-grid">
+                    <div class="template-card">
+                        <div class="template-icon">
+                            <i class="fas fa-file-csv"></i>
+                        </div>
+                        <h4>Modelo CSV Básico</h4>
+                        <p>Planilha simples com colunas padrão para importação manual</p>
+                        <button class="btn btn-outline btn-sm" onclick="downloadTemplate('basic-csv')">
+                            <i class="fas fa-download"></i>
+                            Baixar
+                        </button>
+                    </div>
+                    
+                    <div class="template-card">
+                        <div class="template-icon">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <h4>Extrato Bancário</h4>
+                        <p>Modelo para importação de extratos bancários padronizados</p>
+                        <button class="btn btn-outline btn-sm" onclick="downloadTemplate('bank-statement')">
+                            <i class="fas fa-download"></i>
+                            Baixar
+                        </button>
+                    </div>
+                    
+                    <div class="template-card">
+                        <div class="template-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <h4>Fatura de Cartão</h4>
+                        <p>Modelo para importação de faturas de cartão de crédito</p>
+                        <button class="btn btn-outline btn-sm" onclick="downloadTemplate('credit-card')">
+                            <i class="fas fa-download"></i>
+                            Baixar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal" id="historyModal">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3><i class="fas fa-history"></i> Histórico de Importações</h3>
+                <button class="modal-close" onclick="closeModal('historyModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="history-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Arquivo</th>
+                                <th>Tipo</th>
+                                <th>Status</th>
+                                <th>Transações</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <!-- History will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/import.js"></script>
+</body>
+</html>

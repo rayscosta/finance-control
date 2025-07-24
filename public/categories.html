@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categorias - Finance Control</title>
+    <link rel="stylesheet" href="/css/dashboard-base.css">
+    <link rel="stylesheet" href="/css/categories.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>Finance Control</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/dashboard.html" class="nav-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/transactions.html" class="nav-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transações</span>
+            </a>
+            <a href="/accounts.html" class="nav-item">
+                <i class="fas fa-credit-card"></i>
+                <span>Contas</span>
+            </a>
+            <a href="/categories.html" class="nav-item active">
+                <i class="fas fa-tags"></i>
+                <span>Categorias</span>
+            </a>
+            <a href="/reports.html" class="nav-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>Relatórios</span>
+            </a>
+            <a href="/import.html" class="nav-item">
+                <i class="fas fa-file-import"></i>
+                <span>Importar</span>
+            </a>
+            <a href="/settings.html" class="nav-item">
+                <i class="fas fa-cog"></i>
+                <span>Configurações</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <div class="user-name" id="userName">Usuário</div>
+                    <div class="user-email" id="userEmail">user@email.com</div>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1><i class="fas fa-tags"></i> Categorias</h1>
+                <p>Organize suas transações por categorias</p>
+            </div>
+            <div class="page-actions">
+                <button class="btn btn-primary" onclick="openCategoryModal()">
+                    <i class="fas fa-plus"></i>
+                    Nova Categoria
+                </button>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <!-- Categories Filter -->
+            <div class="categories-filter">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-filter="all">
+                        <i class="fas fa-list"></i>
+                        Todas
+                    </button>
+                    <button class="filter-tab" data-filter="INCOME">
+                        <i class="fas fa-arrow-up"></i>
+                        Receitas
+                    </button>
+                    <button class="filter-tab" data-filter="EXPENSE">
+                        <i class="fas fa-arrow-down"></i>
+                        Despesas
+                    </button>
+                    <button class="filter-tab" data-filter="personal">
+                        <i class="fas fa-user"></i>
+                        Personalizadas
+                    </button>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="categorySearch" placeholder="Buscar categorias...">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+
+            <!-- Categories Grid -->
+            <div class="categories-section">
+                <div class="categories-container" id="categoriesContainer">
+                    <!-- Categories will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Category Modal -->
+    <div class="modal" id="categoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="categoryModalTitle">Nova Categoria</h3>
+                <button class="close-btn" onclick="closeModal('categoryModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="categoryForm">
+                <input type="hidden" id="categoryId" name="id">
+                <div class="form-group">
+                    <label for="categoryName">Nome da Categoria</label>
+                    <input type="text" id="categoryName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoryType">Tipo</label>
+                    <select id="categoryType" name="type" required>
+                        <option value="">Selecione o tipo</option>
+                        <option value="INCOME">Receita</option>
+                        <option value="EXPENSE">Despesa</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="categoryIcon">Ícone</label>
+                    <div class="icon-selector">
+                        <input type="text" id="categoryIcon" name="icon" required readonly>
+                        <div class="icon-grid" id="iconGrid">
+                            <!-- Icons will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="categoryColor">Cor</label>
+                    <div class="color-selector">
+                        <input type="color" id="categoryColor" name="color" value="#3b82f6">
+                        <div class="color-presets">
+                            <button type="button" class="color-preset" data-color="#ef4444" style="background: #ef4444;"></button>
+                            <button type="button" class="color-preset" data-color="#f59e0b" style="background: #f59e0b;"></button>
+                            <button type="button" class="color-preset" data-color="#10b981" style="background: #10b981;"></button>
+                            <button type="button" class="color-preset" data-color="#3b82f6" style="background: #3b82f6;"></button>
+                            <button type="button" class="color-preset" data-color="#8b5cf6" style="background: #8b5cf6;"></button>
+                            <button type="button" class="color-preset" data-color="#ec4899" style="background: #ec4899;"></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="categoryDescription">Descrição (Opcional)</label>
+                    <textarea id="categoryDescription" name="description" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('categoryModal')">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Salvar Categoria
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar Exclusão</h3>
+                <button class="close-btn" onclick="closeModal('deleteModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir esta categoria?</p>
+                <p class="warning">Esta ação não pode ser desfeita e todas as transações desta categoria ficarão sem categoria.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('deleteModal')">
+                    Cancelar
+                </button>
+                <button class="btn btn-danger" onclick="confirmDelete()">
+                    Excluir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/categories.js"></script>
+</body>
+</html>

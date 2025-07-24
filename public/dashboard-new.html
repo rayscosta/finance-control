@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Finance Control</title>
+    <link rel="stylesheet" href="css/dashboard-base.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Finance Control</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item active">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="transactions.html" class="nav-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Transações</span>
+                </a>
+                <a href="accounts.html" class="nav-item">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Contas</span>
+                </a>
+                <a href="categories.html" class="nav-item">
+                    <i class="fas fa-tags"></i>
+                    <span>Categorias</span>
+                </a>
+                <a href="reports.html" class="nav-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Relatórios</span>
+                </a>
+                <a href="import.html" class="nav-item">
+                    <i class="fas fa-file-import"></i>
+                    <span>Importar</span>
+                </a>
+                <a href="settings.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configurações</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Usuário</div>
+                        <div class="user-email" id="userEmail">user@email.com</div>
+                    </div>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Sair
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="page-header">
+                <div class="page-title">
+                    <h1><i class="fas fa-home"></i> Dashboard Financeiro</h1>
+                    <p>Visão geral das suas finanças pessoais</p>
+                </div>
+                <div class="page-actions">
+                    <select id="periodFilter" class="form-control" style="width: auto; margin-right: 15px;">
+                        <option value="month">Este Mês</option>
+                        <option value="quarter">Últimos 3 Meses</option>
+                        <option value="year">Este Ano</option>
+                        <option value="custom">Período Personalizado</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="window.location.href='transactions.html'">
+                        <i class="fas fa-plus"></i>
+                        Nova Transação
+                    </button>
+                </div>
+            </header>
+
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="summary-card income">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="card-title">Receitas</div>
+                    </div>
+                    <div class="card-value" id="totalIncome">R$ 0,00</div>
+                    <div class="card-change positive" id="incomeChange">+0.0% vs mês anterior</div>
+                </div>
+
+                <div class="summary-card expense">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="card-title">Despesas</div>
+                    </div>
+                    <div class="card-value" id="totalExpense">R$ 0,00</div>
+                    <div class="card-change negative" id="expenseChange">+0.0% vs mês anterior</div>
+                </div>
+
+                <div class="summary-card balance">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="card-title">Saldo</div>
+                    </div>
+                    <div class="card-value" id="netBalance">R$ 0,00</div>
+                    <div class="card-change neutral" id="balanceChange">Balanço do período</div>
+                </div>
+
+                <div class="summary-card savings">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-piggy-bank"></i>
+                        </div>
+                        <div class="card-title">Economia</div>
+                    </div>
+                    <div class="card-value" id="savingsRate">0%</div>
+                    <div class="card-change neutral" id="savingsText">Taxa de economia</div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <!-- Monthly Trend Chart -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> Tendência Mensal</h3>
+                        <div class="chart-controls">
+                            <button class="chart-btn active" data-chart="trend" data-period="6">6 meses</button>
+                            <button class="chart-btn" data-chart="trend" data-period="12">12 meses</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Category Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-pie"></i> Distribuição por Categoria</h3>
+                        <div class="chart-controls">
+                            <button class="chart-btn active" data-chart="category" data-type="expense">Despesas</button>
+                            <button class="chart-btn" data-chart="category" data-type="income">Receitas</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Weekly Spending Pattern -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Padrão Semanal</h3>
+                        <p>Gastos por dia da semana</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Account Balances -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-credit-card"></i> Saldos das Contas</h3>
+                        <button class="btn btn-sm btn-outline" onclick="window.location.href='accounts.html'">
+                            Ver Detalhes
+                        </button>
+                    </div>
+                    <div class="accounts-list" id="accountsList">
+                        <!-- Accounts will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions & Quick Actions -->
+            <div class="bottom-section">
+                <!-- Recent Transactions -->
+                <div class="transactions-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-clock"></i> Transações Recentes</h3>
+                        <a href="transactions.html" class="view-all-link">Ver todas</a>
+                    </div>
+                    <div class="transactions-list" id="recentTransactions">
+                        <!-- Recent transactions will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-bolt"></i> Ações Rápidas</h3>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="quick-action-btn income" onclick="quickTransaction('INCOME')">
+                            <i class="fas fa-plus"></i>
+                            <span>Adicionar Receita</span>
+                        </button>
+                        <button class="quick-action-btn expense" onclick="quickTransaction('EXPENSE')">
+                            <i class="fas fa-minus"></i>
+                            <span>Adicionar Despesa</span>
+                        </button>
+                        <button class="quick-action-btn transfer" onclick="quickTransaction('TRANSFER')">
+                            <i class="fas fa-exchange-alt"></i>
+                            <span>Transferência</span>
+                        </button>
+                        <button class="quick-action-btn import" onclick="window.location.href='import.html'">
+                            <i class="fas fa-file-import"></i>
+                            <span>Importar Extrato</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Health Score -->
+            <div class="health-score-section">
+                <div class="health-card">
+                    <div class="health-header">
+                        <h3><i class="fas fa-heartbeat"></i> Score de Saúde Financeira</h3>
+                        <div class="health-score" id="healthScore">0</div>
+                    </div>
+                    <div class="health-indicators">
+                        <div class="indicator">
+                            <div class="indicator-label">Taxa de Economia</div>
+                            <div class="indicator-bar">
+                                <div class="indicator-fill" style="width: 0%" id="savingsBar"></div>
+                            </div>
+                            <div class="indicator-value" id="savingsIndicator">0%</div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">Diversificação de Gastos</div>
+                            <div class="indicator-bar">
+                                <div class="indicator-fill" style="width: 0%" id="diversificationBar"></div>
+                            </div>
+                            <div class="indicator-value" id="diversificationIndicator">0%</div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">Consistência de Receitas</div>
+                            <div class="indicator-bar">
+                                <div class="indicator-fill" style="width: 0%" id="consistencyBar"></div>
+                            </div>
+                            <div class="indicator-value" id="consistencyIndicator">0%</div>
+                        </div>
+                    </div>
+                    <div class="health-tips" id="healthTips">
+                        <!-- Tips will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Quick Transaction Modal -->
+    <div class="modal" id="quickTransactionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="quickModalTitle"><i class="fas fa-plus"></i> Transação Rápida</h3>
+                <button class="modal-close" onclick="closeModal('quickTransactionModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="quickTransactionForm" class="modal-body">
+                <input type="hidden" id="quickTransactionType" name="type">
+                
+                <div class="form-group">
+                    <label for="quickAmount">Valor *</label>
+                    <div class="input-group">
+                        <span class="input-prefix">R$</span>
+                        <input type="number" id="quickAmount" name="amount" step="0.01" min="0" class="form-control" placeholder="0,00" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="quickDescription">Descrição *</label>
+                    <input type="text" id="quickDescription" name="description" class="form-control" placeholder="Ex: Salário, Almoço, etc." required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="quickCategory">Categoria</label>
+                        <select id="quickCategory" name="categoryId" class="form-control">
+                            <option value="">Selecione a categoria</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quickAccount">Conta *</label>
+                        <select id="quickAccount" name="accountId" class="form-control" required>
+                            <option value="">Selecione a conta</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('quickTransactionModal')">Cancelar</button>
+                <button type="submit" form="quickTransactionForm" class="btn btn-primary">
+                    <i class="fas fa-save"></i>
+                    Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

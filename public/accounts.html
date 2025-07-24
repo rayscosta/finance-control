@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contas - Finance Control</title>
+    <link rel="stylesheet" href="/css/dashboard-base.css">
+    <link rel="stylesheet" href="/css/accounts.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>Finance Control</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/dashboard.html" class="nav-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/transactions.html" class="nav-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transações</span>
+            </a>
+            <a href="/accounts.html" class="nav-item active">
+                <i class="fas fa-credit-card"></i>
+                <span>Contas</span>
+            </a>
+            <a href="/categories.html" class="nav-item">
+                <i class="fas fa-tags"></i>
+                <span>Categorias</span>
+            </a>
+            <a href="/reports.html" class="nav-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>Relatórios</span>
+            </a>
+            <a href="/import.html" class="nav-item">
+                <i class="fas fa-file-import"></i>
+                <span>Importar</span>
+            </a>
+            <a href="/settings.html" class="nav-item">
+                <i class="fas fa-cog"></i>
+                <span>Configurações</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <div class="user-name" id="userName">Usuário</div>
+                    <div class="user-email" id="userEmail">user@email.com</div>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sair</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1><i class="fas fa-credit-card"></i> Contas</h1>
+                <p>Gerencie suas contas bancárias e cartões</p>
+            </div>
+            <div class="page-actions">
+                <button class="btn btn-primary" onclick="openAccountModal()">
+                    <i class="fas fa-plus"></i>
+                    Nova Conta
+                </button>
+            </div>
+        </div>
+
+        <div class="page-content">
+            <!-- Account Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon checking">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalChecking">R$ 0,00</h3>
+                        <p>Contas Correntes</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon savings">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalSavings">R$ 0,00</h3>
+                        <p>Poupanças</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon credit">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalCredit">R$ 0,00</h3>
+                        <p>Cartões de Crédito</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon investment">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalInvestment">R$ 0,00</h3>
+                        <p>Investimentos</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accounts List -->
+            <div class="accounts-section">
+                <div class="section-header">
+                    <h2>Suas Contas</h2>
+                    <div class="view-controls">
+                        <button class="view-btn active" data-view="cards">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="view-btn" data-view="list">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="accounts-container" id="accountsContainer">
+                    <!-- Accounts will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Account Modal -->
+    <div class="modal" id="accountModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="accountModalTitle">Nova Conta</h3>
+                <button class="close-btn" onclick="closeModal('accountModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="accountForm">
+                <input type="hidden" id="accountId" name="id">
+                <div class="form-group">
+                    <label for="accountName">Nome da Conta</label>
+                    <input type="text" id="accountName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="accountType">Tipo de Conta</label>
+                    <select id="accountType" name="type" required>
+                        <option value="">Selecione o tipo</option>
+                        <option value="CHECKING">Conta Corrente</option>
+                        <option value="SAVINGS">Poupança</option>
+                        <option value="CREDIT">Cartão de Crédito</option>
+                        <option value="INVESTMENT">Investimento</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="accountBalance">Saldo Inicial</label>
+                    <input type="number" id="accountBalance" name="balance" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="accountDescription">Descrição (Opcional)</label>
+                    <textarea id="accountDescription" name="description" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('accountModal')">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Salvar Conta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar Exclusão</h3>
+                <button class="close-btn" onclick="closeModal('deleteModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir esta conta?</p>
+                <p class="warning">Esta ação não pode ser desfeita e todas as transações associadas serão removidas.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('deleteModal')">
+                    Cancelar
+                </button>
+                <button class="btn btn-danger" onclick="confirmDelete()">
+                    Excluir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/accounts.js"></script>
+</body>
+</html>

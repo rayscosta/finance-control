@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Control - Cadastro</title>
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    <h1>Finance Control</h1>
+                </div>
+                <p class="auth-subtitle">Crie sua conta para começar</p>
+            </div>
+
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="name">Nome completo</label>
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="name" name="name" placeholder="Seu nome completo" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <div class="input-group">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" name="email" placeholder="seu@email.com" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" placeholder="Sua senha" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                            <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                        </button>
+                    </div>
+                    <div class="password-requirements">
+                        <small>A senha deve ter pelo menos 8 caracteres, incluindo:</small>
+                        <ul>
+                            <li id="req-length">✗ Mínimo 8 caracteres</li>
+                            <li id="req-lower">✗ Uma letra minúscula</li>
+                            <li id="req-upper">✗ Uma letra maiúscula</li>
+                            <li id="req-number">✗ Um número</li>
+                            <li id="req-special">✗ Um caractere especial (!@#$%^&*)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmar senha</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirme sua senha" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword')">
+                            <i class="fas fa-eye" id="confirmPasswordToggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="termsAccept" required>
+                        <span class="checkmark"></span>
+                        Aceito os <a href="#" target="_blank">termos de uso</a> e <a href="#" target="_blank">política de privacidade</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full" id="registerBtn">
+                    <span class="btn-text">Criar conta</span>
+                    <span class="btn-loading hidden">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Criando conta...
+                    </span>
+                </button>
+
+                <div class="auth-footer">
+                    <p>Já tem uma conta? <a href="login.html">Fazer login</a></p>
+                </div>
+            </form>
+        </div>
+
+        <div class="auth-bg">
+            <div class="bg-overlay"></div>
+            <div class="bg-content">
+                <h2>Controle suas finanças com facilidade</h2>
+                <p>Gerencie suas contas, transações e orçamentos em um só lugar.</p>
+                <ul class="features-list">
+                    <li><i class="fas fa-check"></i> Dashboard intuitivo</li>
+                    <li><i class="fas fa-check"></i> Relatórios detalhados</li>
+                    <li><i class="fas fa-check"></i> Importação de extratos</li>
+                    <li><i class="fas fa-check"></i> Controle de gastos</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle" style="color: #28a745;"></i> Sucesso!</h3>
+            </div>
+            <div class="modal-body">
+                <p>Conta criada com sucesso! Redirecionando para o login...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Erro</h3>
+                <span class="close" onclick="closeErrorModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="errorMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeErrorModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api';
+
+        // Check if already logged in
+        if (localStorage.getItem('authToken')) {
+            window.location.href = '/';
+        }
+
+        // Password validation
+        const passwordInput = document.getElementById('password');
+        const requirements = {
+            length: document.getElementById('req-length'),
+            lower: document.getElementById('req-lower'),
+            upper: document.getElementById('req-upper'),
+            number: document.getElementById('req-number'),
+            special: document.getElementById('req-special')
+        };
+
+        passwordInput.addEventListener('input', validatePassword);
+
+        function validatePassword() {
+            const password = passwordInput.value;
+            
+            // Length requirement
+            if (password.length >= 8) {
+                requirements.length.innerHTML = '✓ Mínimo 8 caracteres';
+                requirements.length.style.color = '#28a745';
+            } else {
+                requirements.length.innerHTML = '✗ Mínimo 8 caracteres';
+                requirements.length.style.color = '#dc3545';
+            }
+
+            // Lowercase requirement
+            if (/[a-z]/.test(password)) {
+                requirements.lower.innerHTML = '✓ Uma letra minúscula';
+                requirements.lower.style.color = '#28a745';
+            } else {
+                requirements.lower.innerHTML = '✗ Uma letra minúscula';
+                requirements.lower.style.color = '#dc3545';
+            }
+
+            // Uppercase requirement
+            if (/[A-Z]/.test(password)) {
+                requirements.upper.innerHTML = '✓ Uma letra maiúscula';
+                requirements.upper.style.color = '#28a745';
+            } else {
+                requirements.upper.innerHTML = '✗ Uma letra maiúscula';
+                requirements.upper.style.color = '#dc3545';
+            }
+
+            // Number requirement
+            if (/[0-9]/.test(password)) {
+                requirements.number.innerHTML = '✓ Um número';
+                requirements.number.style.color = '#28a745';
+            } else {
+                requirements.number.innerHTML = '✗ Um número';
+                requirements.number.style.color = '#dc3545';
+            }
+
+            // Special character requirement
+            if (/[!@#$%^&*]/.test(password)) {
+                requirements.special.innerHTML = '✓ Um caractere especial (!@#$%^&*)';
+                requirements.special.style.color = '#28a745';
+            } else {
+                requirements.special.innerHTML = '✗ Um caractere especial (!@#$%^&*)';
+                requirements.special.style.color = '#dc3545';
+            }
+        }
+
+        // Toggle password visibility
+        function togglePassword(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            const toggleIcon = document.getElementById(fieldId + 'ToggleIcon');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        // Form submission
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('Formulário submetido');
+
+            const btn = document.getElementById('registerBtn');
+            const btnText = btn.querySelector('.btn-text');
+            const btnLoading = btn.querySelector('.btn-loading');
+
+            // Validate password confirmation
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            console.log('Validando senhas:', { password: password.length, confirmPassword: confirmPassword.length });
+
+            if (password !== confirmPassword) {
+                console.log('Senhas não coincidem');
+                showError('As senhas não coincidem');
+                return;
+            }
+
+            // Validate checkbox
+            const termsAccept = document.getElementById('termsAccept').checked;
+            if (!termsAccept) {
+                console.log('Termos não aceitos');
+                showError('Você deve aceitar os termos de uso e política de privacidade');
+                return;
+            }
+
+            // Show loading state
+            btnText.classList.add('hidden');
+            btnLoading.classList.remove('hidden');
+            btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            const registerData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                password: formData.get('password')
+            };
+
+            console.log('Dados do registro:', { ...registerData, password: '[OCULTO]' });
+
+            try {
+                console.log('Enviando requisição para:', `${API_BASE_URL}/auth/register`);
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(registerData)
+                });
+
+                console.log('Resposta recebida:', response.status, response.statusText);
+                const data = await response.json();
+                console.log('Dados da resposta:', data);
+
+                if (data.success) {
+                    console.log('Cadastro realizado com sucesso');
+                    showSuccess();
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                } else {
+                    console.log('Erro no cadastro:', data.message);
+                    showError(data.message || 'Erro ao criar conta');
+                }
+            } catch (error) {
+                console.error('Erro na requisição:', error);
+                showError('Erro de conexão. Tente novamente.');
+            } finally {
+                console.log('Resetando estado do botão');
+                // Reset button state
+                btnText.classList.remove('hidden');
+                btnLoading.classList.add('hidden');
+                btn.disabled = false;
+            }
+        });
+
+        function showSuccess() {
+            document.getElementById('successModal').style.display = 'flex';
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorModal').style.display = 'flex';
+        }
+
+        function closeErrorModal() {
+            document.getElementById('errorModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const errorModal = document.getElementById('errorModal');
+            const successModal = document.getElementById('successModal');
+            
+            if (event.target === errorModal) {
+                closeErrorModal();
+            }
+            if (event.target === successModal) {
+                successModal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
