@@ -55,20 +55,16 @@ export const createAccountSchema = Joi.object({
     'string.max': 'Nome da conta deve ter no máximo 100 caracteres',
     'any.required': 'Nome da conta é obrigatório'
   }),
-  type: Joi.string().valid('CHECKING', 'SAVINGS', 'INVESTMENT', 'CRYPTO').required().messages({
-    'any.only': 'Tipo deve ser: CHECKING, SAVINGS, INVESTMENT ou CRYPTO',
+  type: Joi.string().valid('CHECKING', 'SAVINGS', 'CREDIT', 'INVESTMENT').required().messages({
+    'any.only': 'Tipo deve ser: CHECKING, SAVINGS, CREDIT ou INVESTMENT',
     'any.required': 'Tipo da conta é obrigatório'
   }),
-  bank: Joi.string().min(2).max(100).required().messages({
-    'string.min': 'Nome do banco deve ter pelo menos 2 caracteres',
-    'string.max': 'Nome do banco deve ter no máximo 100 caracteres',
-    'any.required': 'Banco é obrigatório'
-  }),
-  agency: Joi.string().max(20).optional(),
-  accountNumber: Joi.string().max(20).optional(),
-  initialBalance: Joi.number().precision(2).min(0).optional().messages({
+  balance: Joi.number().precision(2).required().messages({
     'number.precision': 'Saldo inicial deve ter no máximo 2 casas decimais',
-    'number.min': 'Saldo inicial não pode ser negativo'
+    'any.required': 'Saldo inicial é obrigatório'
+  }),
+  description: Joi.string().max(255).optional().allow('', null).messages({
+    'string.max': 'Descrição deve ter no máximo 255 caracteres'
   })
 });
 

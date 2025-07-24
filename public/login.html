@@ -6,9 +6,11 @@
     <title>Finance Control - Login</title>
     <link rel="stylesheet" href="css/auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="auth-container">
+        <!-- Left Panel - Form -->
         <div class="auth-card">
             <div class="auth-header">
                 <div class="logo">
@@ -19,8 +21,8 @@
             </div>
 
             <div class="tabs">
-                <button class="tab-button active" onclick="showTab('login')">Entrar</button>
-                <button class="tab-button" onclick="showTab('register')">Registrar</button>
+                <button class="tab-button active">Entrar</button>
+                <button class="tab-button">Registrar</button>
             </div>
 
             <!-- Tab Login -->
@@ -31,36 +33,26 @@
                     <div class="form-group">
                         <label for="login-email">Email</label>
                         <div class="input-group">
+                            <input type="email" id="login-email" class="form-control" placeholder="seu@email.com" required>
                             <i class="fas fa-envelope"></i>
-                            <input type="email" id="login-email" name="email" placeholder="seu@email.com" required>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="login-password">Senha</label>
                         <div class="input-group">
+                            <input type="password" id="login-password" class="form-control" placeholder="Sua senha" required>
                             <i class="fas fa-lock"></i>
-                            <input type="password" id="login-password" name="password" placeholder="Sua senha" required>
-                            <button type="button" class="password-toggle" onclick="togglePassword('login-password', 'loginPasswordToggleIcon')">
-                                <i class="fas fa-eye" id="loginPasswordToggleIcon"></i>
-                            </button>
                         </div>
                     </div>
 
-                    <div class="form-options">
-                        <label class="checkbox-container">
-                            <input type="checkbox" id="rememberMe">
-                            <span class="checkmark"></span>
-                            Lembrar de mim
-                        </label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="remember-me">
+                        <label for="remember-me">Lembrar de mim</label>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-full" id="loginBtn">
-                        <span class="btn-text">Entrar</span>
-                        <span class="btn-loading hidden">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            Entrando...
-                        </span>
+                    <button type="submit" class="btn-primary">
+                        Entrar
                     </button>
                 </form>
             </div>
@@ -71,257 +63,82 @@
                     <div id="register-message"></div>
                     
                     <div class="form-group">
-                        <label for="register-name">Nome</label>
+                        <label for="register-name">Nome Completo</label>
                         <div class="input-group">
+                            <input type="text" id="register-name" class="form-control" placeholder="Seu nome completo" required>
                             <i class="fas fa-user"></i>
-                            <input type="text" id="register-name" name="name" placeholder="Seu nome completo" required>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="register-email">Email</label>
                         <div class="input-group">
+                            <input type="email" id="register-email" class="form-control" placeholder="seu@email.com" required>
                             <i class="fas fa-envelope"></i>
-                            <input type="email" id="register-email" name="email" placeholder="seu@email.com" required>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="register-password">Senha</label>
                         <div class="input-group">
+                            <input type="password" id="register-password" class="form-control" placeholder="Crie uma senha segura" required>
                             <i class="fas fa-lock"></i>
-                            <input type="password" id="register-password" name="password" placeholder="Crie uma senha forte" required>
-                            <button type="button" class="password-toggle" onclick="togglePassword('register-password', 'registerPasswordToggleIcon')">
-                                <i class="fas fa-eye" id="registerPasswordToggleIcon"></i>
-                            </button>
-                        </div>
-                        <div class="password-requirements">
-                            <small>A senha deve conter:</small>
-                            <ul>
-                                <li>Pelo menos 8 caracteres</li>
-                                <li>Uma letra maiúscula</li>
-                                <li>Uma letra minúscula</li>
-                                <li>Um número</li>
-                                <li>Um símbolo (!@#$%^&*)</li>
-                            </ul>
                         </div>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary btn-full" id="registerBtn">
-                        <span class="btn-text">Registrar</span>
-                        <span class="btn-loading hidden">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            Criando conta...
-                        </span>
+
+                    <button type="submit" class="btn-primary">
+                        Criar Conta
                     </button>
                 </form>
             </div>
-
-            <div class="system-info">
-                <h3>🎯 Sistema de Categorias Híbrido</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-icon">🌍</span>
-                        <div>
-                            <strong>47 Categorias Globais</strong>
-                            <small>Pré-configuradas para uso imediato</small>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-icon">🎨</span>
-                        <div>
-                            <strong>Categorias Personalizadas</strong>
-                            <small>Crie suas próprias quando precisar</small>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-icon">⚡</span>
-                        <div>
-                            <strong>Performance Otimizada</strong>
-                            <small>99% menos registros no banco</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
-        <!-- Welcome Section -->
-        <div class="welcome-section">
-            <div class="welcome-content">
-                <h2>Bem-vindo ao seu futuro financeiro!</h2>
-                <p>Controle suas finanças de forma inteligente com nosso sistema híbrido de categorias.</p>
-                
-                <div class="features-grid">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-chart-pie"></i>
-                        </div>
-                        <h3>Dashboard Inteligente</h3>
-                        <p>Visualize seus gastos e receitas com gráficos interativos e relatórios detalhados.</p>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-tags"></i>
-                        </div>
-                        <h3>Categorias Otimizadas</h3>
-                        <p>47 categorias globais + suas personalizadas para organização perfeita.</p>
-                    </div>
-                    
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-mobile-alt"></i>
-                        </div>
-                        <h3>Acesso Multiplataforma</h3>
-                        <p>Acesse de qualquer dispositivo, a qualquer hora, em qualquer lugar.</p>
-                    </div>
+        <!-- Right Panel - Info -->
+        <div class="auth-info">
+            <h2>Bem-vindo ao seu futuro financeiro!</h2>
+            <p>Controle suas finanças de forma inteligente com nosso sistema híbrido de categorias.</p>
+            
+            <div class="feature">
+                <i class="fas fa-chart-pie"></i>
+                <div class="feature-content">
+                    <h3>Dashboard Inteligente</h3>
+                    <p>Visualize seus gastos e receitas com gráficos interativos e relatórios detalhados.</p>
+                </div>
+            </div>
+
+            <div class="feature">
+                <i class="fas fa-tags"></i>
+                <div class="feature-content">
+                    <h3>Categorias Otimizadas</h3>
+                    <p>47 categorias globais + suas personalizadas para organização perfeita.</p>
+                </div>
+            </div>
+
+            <div class="feature">
+                <i class="fas fa-mobile-alt"></i>
+                <div class="feature-content">
+                    <h3>Acesso Multiplataforma</h3>
+                    <p>Acesse de qualquer dispositivo, a qualquer hora, em qualquer lugar.</p>
+                </div>
+            </div>
+
+            <div class="system-info">
+                <div class="info-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Sistema Híbrido: 47 categorias globais + suas categorias personalizadas</span>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Performance: 99% menos registros no banco de dados</span>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-cogs"></i>
+                    <span>Flexibilidade: Crie categorias personalizadas quando precisar</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Verificar se já está logado
-        if (localStorage.getItem('authToken')) {
-            window.location.href = '/dashboard.html';
-        }
-
-        // Tab functionality
-        function showTab(tabName) {
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
-            document.getElementById(`${tabName}-tab`).classList.add('active');
-        }
-
-        // Password toggle
-        function togglePassword(inputId, iconId) {
-            const passwordInput = document.getElementById(inputId);
-            const toggleIcon = document.getElementById(iconId);
-
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.className = 'fas fa-eye-slash';
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.className = 'fas fa-eye';
-            }
-        }
-
-        // API request helper
-        async function makeRequest(url, data) {
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                return await response.json();
-            } catch (error) {
-                return { success: false, message: 'Erro de conexão com o servidor' };
-            }
-        }
-
-        // Show loading state
-        function setLoadingState(formId, isLoading) {
-            const btn = document.querySelector(`#${formId} button[type="submit"]`);
-            const btnText = btn.querySelector('.btn-text');
-            const btnLoading = btn.querySelector('.btn-loading');
-            
-            if (isLoading) {
-                btnText.classList.add('hidden');
-                btnLoading.classList.remove('hidden');
-                btn.disabled = true;
-            } else {
-                btnText.classList.remove('hidden');
-                btnLoading.classList.add('hidden');
-                btn.disabled = false;
-            }
-        }
-
-        // Show message
-        function showMessage(elementId, message, type = 'error') {
-            const messageDiv = document.getElementById(elementId);
-            messageDiv.innerHTML = `<div class="${type}">${message}</div>`;
-            
-            if (type === 'success') {
-                setTimeout(() => {
-                    messageDiv.innerHTML = '';
-                }, 3000);
-            }
-        }
-
-        // Login form
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
-            
-            setLoadingState('loginForm', true);
-            showMessage('login-message', '<div class="loading">Fazendo login...</div>');
-            
-            const result = await makeRequest('/api/auth/login', { email, password });
-            
-            setLoadingState('loginForm', false);
-            
-            if (result.success) {
-                localStorage.setItem('authToken', result.data.token);
-                
-                if (rememberMe) {
-                    localStorage.setItem('rememberedEmail', email);
-                } else {
-                    localStorage.removeItem('rememberedEmail');
-                }
-                
-                showMessage('login-message', 'Login realizado com sucesso! Redirecionando...', 'success');
-                setTimeout(() => {
-                    window.location.href = '/dashboard.html';
-                }, 1000);
-            } else {
-                showMessage('login-message', result.message);
-            }
-        });
-
-        // Register form
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const name = document.getElementById('register-name').value;
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            
-            setLoadingState('registerForm', true);
-            showMessage('register-message', '<div class="loading">Criando conta...</div>');
-            
-            const result = await makeRequest('/api/auth/register', { name, email, password });
-            
-            setLoadingState('registerForm', false);
-            
-            if (result.success) {
-                localStorage.setItem('authToken', result.data.token);
-                showMessage('register-message', 'Conta criada com sucesso! Redirecionando...', 'success');
-                setTimeout(() => {
-                    window.location.href = '/dashboard.html';
-                }, 1000);
-            } else {
-                showMessage('register-message', result.message);
-            }
-        });
-
-        // Load remembered email
-        document.addEventListener('DOMContentLoaded', () => {
-            const rememberedEmail = localStorage.getItem('rememberedEmail');
-            if (rememberedEmail) {
-                document.getElementById('login-email').value = rememberedEmail;
-                document.getElementById('rememberMe').checked = true;
-            }
-        });
-    </script>
+    <script src="js/auth.js"></script>
 </body>
 </html>

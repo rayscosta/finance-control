@@ -260,6 +260,7 @@ function openAccountModal(accountId = null) {
 // Handle account form submission
 async function handleAccountSubmit(e) {
     e.preventDefault();
+    console.log('Form submitted!', e);
     
     const formData = new FormData(e.target);
     const accountId = formData.get('id');
@@ -270,10 +271,16 @@ async function handleAccountSubmit(e) {
         description: formData.get('description') || null
     };
     
+    console.log('Account data to submit:', data);
+    
     try {
         const token = localStorage.getItem('authToken');
+        console.log('Auth token:', token ? 'exists' : 'missing');
+        
         const url = accountId ? `/api/accounts/${accountId}` : '/api/accounts';
         const method = accountId ? 'PUT' : 'POST';
+        
+        console.log('Making request to:', url, 'with method:', method);
         
         const response = await fetch(url, {
             method,
@@ -284,12 +291,17 @@ async function handleAccountSubmit(e) {
             body: JSON.stringify(data)
         });
         
+        console.log('Response status:', response.status);
+        
         if (response.ok) {
+            const result = await response.json();
+            console.log('Success response:', result);
             closeModal('accountModal');
             await loadAccounts();
             showSuccess(accountId ? 'Conta atualizada com sucesso!' : 'Conta criada com sucesso!');
         } else {
             const error = await response.json();
+            console.error('Error response:', error);
             showError(error.message || 'Erro ao salvar conta');
         }
     } catch (error) {

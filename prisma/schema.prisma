@@ -28,10 +28,11 @@ model Account {
   userId        String
   name          String
   type          AccountType
-  bank          String
+  bank          String?
   agency        String?
   accountNumber String?
   balance       Decimal       @db.Decimal(15, 2)
+  description   String?
   isActive      Boolean       @default(true)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -171,6 +172,7 @@ model AuditLog {
 enum AccountType {
   CHECKING
   SAVINGS
+  CREDIT
   INVESTMENT
   CRYPTO
 }

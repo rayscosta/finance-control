@@ -8,12 +8,14 @@ export class AccountService {
     const account = await prisma.account.create({
       data: {
         userId,
-        name: accountData.name ?? null,
-        type: accountData.type ?? null,
-        bank: accountData.bank ?? null,
-        agency: accountData.agency ?? null,
-        accountNumber: accountData.accountNumber ?? null,
-        balance: accountData.initialBalance || new Decimal(0),
+        name: accountData.name,
+        type: accountData.type,
+        balance: accountData.balance || new Decimal(0),
+        description: accountData.description || null,
+        // Campos opcionais para compatibilidade com o schema atual
+        bank: null,
+        agency: null,
+        accountNumber: null,
       }
     });
 
@@ -65,9 +67,8 @@ export class AccountService {
     const data: any = {};
     if (typeof updateData.name !== 'undefined') data.name = updateData.name;
     if (typeof updateData.type !== 'undefined') data.type = updateData.type;
-    if (typeof updateData.bank !== 'undefined') data.bank = updateData.bank;
-    if (typeof updateData.agency !== 'undefined') data.agency = updateData.agency;
-    if (typeof updateData.accountNumber !== 'undefined') data.accountNumber = updateData.accountNumber;
+    if (typeof updateData.balance !== 'undefined') data.balance = updateData.balance;
+    if (typeof updateData.description !== 'undefined') data.description = updateData.description;
 
     const account = await prisma.account.update({
       where: { id: accountId },

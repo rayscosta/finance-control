@@ -34,11 +34,9 @@ export interface AccountDto {
 
 export interface CreateAccountDto {
   name: string;
-  type: 'CHECKING' | 'SAVINGS' | 'INVESTMENT' | 'CRYPTO';
-  bank: string;
-  agency?: string;
-  accountNumber?: string;
-  initialBalance?: Decimal;
+  type: 'CHECKING' | 'SAVINGS' | 'CREDIT' | 'INVESTMENT';
+  balance: Decimal;
+  description?: string;
 }
 
 export interface TransactionDto {
