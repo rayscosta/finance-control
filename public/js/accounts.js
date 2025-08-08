@@ -244,7 +244,11 @@ function openAccountModal(accountId = null) {
         title.textContent = 'Editar Conta';
         document.getElementById('accountId').value = account.id;
         document.getElementById('accountName').value = account.name;
-        document.getElementById('accountType').value = account.type;
+        
+        // Selecionar o tipo correto usando radio buttons
+        const typeRadio = document.querySelector(`input[name="type"][value="${account.type}"]`);
+        if (typeRadio) typeRadio.checked = true;
+        
         document.getElementById('accountBalance').value = account.balance;
         document.getElementById('accountDescription').value = account.description || '';
     } else {
@@ -252,6 +256,10 @@ function openAccountModal(accountId = null) {
         title.textContent = 'Nova Conta';
         form.reset();
         document.getElementById('accountId').value = '';
+        
+        // Definir Conta Corrente como default
+        const defaultTypeRadio = document.querySelector('input[name="type"][value="CHECKING"]');
+        if (defaultTypeRadio) defaultTypeRadio.checked = true;
     }
     
     showModal('accountModal');

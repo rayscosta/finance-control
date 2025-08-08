@@ -147,6 +147,9 @@ class AuthManager {
             this.showMessage('register-message', 'A senha deve ter pelo menos 6 caracteres.', 'error');
             return;
         }
+        
+        // Limpar mensagens anteriores
+        this.showMessage('register-message', '', '');
 
         try {
             // Loading state
@@ -174,11 +177,12 @@ class AuthManager {
                 }, 1500);
             } else {
                 // Erro no registro
+                console.error('Erro de registro:', data);
                 this.showMessage('register-message', data.message || 'Erro ao criar conta. Tente novamente.', 'error');
             }
         } catch (error) {
             console.error('Erro no registro:', error);
-            this.showMessage('register-message', 'Erro de conexão. Tente novamente.', 'error');
+            this.showMessage('register-message', 'Erro de conexão. Tente novamente. Detalhes: ' + error.message, 'error');
         } finally {
             this.setButtonLoading(submitBtn, false);
         }

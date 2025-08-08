@@ -27,9 +27,8 @@ export const createUserSchema = Joi.object({
     'string.email': 'Email deve ter um formato válido',
     'any.required': 'Email é obrigatório'
   }),
-  password: Joi.string().min(8).pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])')).required().messages({
-    'string.min': 'Senha deve ter pelo menos 8 caracteres',
-    'string.pattern.base': 'Senha deve conter ao menos: 1 letra minúscula, 1 maiúscula, 1 número e 1 símbolo',
+  password: Joi.string().min(6).required().messages({
+    'string.min': 'Senha deve ter pelo menos 6 caracteres',
     'any.required': 'Senha é obrigatória'
   }),
   name: Joi.string().min(2).max(100).required().messages({
