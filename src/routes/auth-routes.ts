@@ -33,4 +33,25 @@ router.get('/profile', authController.getProfile);
  */
 router.put('/profile', authController.updateProfile);
 
+/**
+ * @route POST /api/auth/forgot-password
+ * @desc Solicitar reset de senha
+ * @access Public
+ */
+router.post('/forgot-password', authController.forgotPassword);
+
+/**
+ * @route POST /api/auth/reset-password
+ * @desc Resetar senha com token
+ * @access Public
+ */
+router.post('/reset-password', authController.resetPassword);
+
+/**
+ * @route GET /api/auth/me
+ * @desc Obter dados do usuário autenticado
+ * @access Private
+ */
+router.get('/me', authController.getProfile);
+
 export default router;

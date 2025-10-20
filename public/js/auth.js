@@ -2,9 +2,9 @@
 
 class AuthManager {
     constructor() {
-        this.baseUrl = 'http://localhost:3000/api';
-        this.token = localStorage.getItem('authToken');
-        this.init();
+        // Usar a variável global ou fallback para localhost:3001
+        this.baseUrl = window.API_BASE_URL || 'http://localhost:3001/api';
+        this.token = null;
     }
 
     init() {
@@ -71,6 +71,37 @@ class AuthManager {
         if (registerForm) {
             registerForm.addEventListener('submit', (e) => this.handleRegister(e));
         }
+
+        // Form de Reset de Senha
+        const resetForm = document.getElementById('resetPasswordForm');
+        if (resetForm) {
+            resetForm.addEventListener('submit', (e) => this.handlePasswordReset(e));
+        }
+
+        // Link "Esqueceu a senha?"
+        const forgotPasswordLink = document.getElementById('forgot-password-link');
+        if (forgotPasswordLink) {
+            forgotPasswordLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showResetPasswordModal();
+            });
+        }
+
+        // Fechar modal
+        const modal = document.getElementById('reset-password-modal');
+        if (modal) {
+            const closeBtn = modal.querySelector('.close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => this.closeResetPasswordModal());
+            }
+            
+            // Fechar ao clicar fora
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.closeResetPasswordModal();
+                }
+            });
+        }
     }
 
     async handleLogin(e) {
@@ -80,10 +111,12 @@ class AuthManager {
         const submitBtn = form.querySelector('button[type="submit"]');
         const messageDiv = document.getElementById('login-message');
         
-        // Dados do formulário
-        const email = form.querySelector('input[type="email"]').value;
-        const password = form.querySelector('input[type="password"]').value;
-        const rememberMe = form.querySelector('input[type="checkbox"]')?.checked || false;
+        // Dados do formulário usando IDs específicos
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const rememberMe = document.getElementById('remember-me')?.checked || false;
+
+        console.log('Tentando fazer login com:', { email, password: '***', rememberMe });
 
         // Validação básica
         if (!email || !password) {
@@ -96,6 +129,8 @@ class AuthManager {
             this.setButtonLoading(submitBtn, true);
             this.showMessage('login-message', 'Entrando...', 'info');
 
+            console.log('Fazendo requisição para:', `${this.baseUrl}/auth/login`);
+
             const response = await fetch(`${this.baseUrl}/auth/login`, {
                 method: 'POST',
                 headers: {
@@ -104,7 +139,10 @@ class AuthManager {
                 body: JSON.stringify({ email, password })
             });
 
+            console.log('Resposta recebida:', response.status, response.statusText);
+
             const data = await response.json();
+            console.log('Dados da resposta:', data);
 
             if (response.ok) {
                 // Login bem-sucedido
@@ -116,6 +154,7 @@ class AuthManager {
                 }, 1500);
             } else {
                 // Erro no login
+                console.error('Erro no login:', data);
                 this.showMessage('login-message', data.message || 'Erro ao fazer login. Verifique suas credenciais.', 'error');
             }
         } catch (error) {
@@ -132,10 +171,12 @@ class AuthManager {
         const form = e.target;
         const submitBtn = form.querySelector('button[type="submit"]');
         
-        // Dados do formulário
-        const name = form.querySelector('input[placeholder*="nome"]').value;
-        const email = form.querySelector('input[type="email"]').value;
-        const password = form.querySelector('input[type="password"]').value;
+        // Dados do formulário usando IDs específicos
+        const name = document.getElementById('register-name').value;
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+
+        console.log('Tentando registrar com:', { name, email, password: '***' });
 
         // Validação básica
         if (!name || !email || !password) {
@@ -156,6 +197,8 @@ class AuthManager {
             this.setButtonLoading(submitBtn, true);
             this.showMessage('register-message', 'Criando conta...', 'info');
 
+            console.log('Fazendo requisição para:', `${this.baseUrl}/auth/register`);
+
             const response = await fetch(`${this.baseUrl}/auth/register`, {
                 method: 'POST',
                 headers: {
@@ -164,7 +207,10 @@ class AuthManager {
                 body: JSON.stringify({ name, email, password })
             });
 
+            console.log('Resposta recebida:', response.status, response.statusText);
+
             const data = await response.json();
+            console.log('Dados da resposta:', data);
 
             if (response.ok) {
                 // Registro bem-sucedido
@@ -251,6 +297,92 @@ class AuthManager {
         }
     }
 
+    showResetPasswordModal() {
+        const modal = document.getElementById('reset-password-modal');
+        if (modal) {
+            modal.classList.add('active');
+            // Limpar campo de email
+            const emailInput = document.getElementById('reset-email');
+            if (emailInput) emailInput.value = '';
+            // Limpar mensagens
+            this.showMessage('reset-message', '', '');
+        }
+    }
+
+    closeResetPasswordModal() {
+        const modal = document.getElementById('reset-password-modal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    }
+
+    async handlePasswordReset(e) {
+        e.preventDefault();
+        
+        const form = e.target;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const email = document.getElementById('reset-email').value;
+
+        console.log('Tentando resetar senha para:', email);
+
+        // Validação básica
+        if (!email) {
+            this.showMessage('reset-message', 'Por favor, insira seu email.', 'error');
+            return;
+        }
+
+        try {
+            // Loading state
+            submitBtn.innerHTML = '<span class="loading"></span> Enviando...';
+            submitBtn.disabled = true;
+            this.showMessage('reset-message', 'Enviando instruções...', 'info');
+
+            console.log('Fazendo requisição para:', `${this.baseUrl}/auth/forgot-password`);
+
+            const response = await fetch(`${this.baseUrl}/auth/forgot-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email })
+            });
+
+            console.log('Resposta recebida:', response.status, response.statusText);
+
+            const data = await response.json();
+            console.log('Dados da resposta:', data);
+
+            if (response.ok) {
+                // Sucesso
+                this.showMessage('reset-message', 
+                    'Instruções enviadas! Verifique seu email (também na pasta de spam).', 
+                    'success'
+                );
+                
+                // Fechar modal após 3 segundos
+                setTimeout(() => {
+                    this.closeResetPasswordModal();
+                }, 3000);
+            } else {
+                // Erro
+                console.error('Erro ao resetar senha:', data);
+                this.showMessage('reset-message', 
+                    data.message || 'Erro ao enviar instruções. Tente novamente.', 
+                    'error'
+                );
+            }
+        } catch (error) {
+            console.error('Erro ao resetar senha:', error);
+            this.showMessage('reset-message', 
+                'Erro de conexão. Tente novamente. Detalhes: ' + error.message, 
+                'error'
+            );
+        } finally {
+            submitBtn.innerHTML = 'Enviar Instruções';
+            submitBtn.disabled = false;
+        }
+    }
+
     // Método para fazer requisições autenticadas
     async authenticatedFetch(url, options = {}) {
         const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
@@ -286,6 +418,7 @@ class AuthManager {
 // Inicializar quando a página carregar
 document.addEventListener('DOMContentLoaded', () => {
     window.authManager = new AuthManager();
+    window.authManager.init(); // Chamar o método init
 });
 
 // Função global para logout (usada nos botões de sair)

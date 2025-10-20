@@ -181,4 +181,83 @@ export class UserService {
       }))
     });
   }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    // Buscar usuário pelo email
+    const user = await prisma.user.findUnique({
+      where: { email }
+    });
+
+    // Por segurança, não revelar se o email existe ou não
+    if (!user) {
+      auditLogger.logTransaction(
+        'SYSTEM',
+        'PASSWORD_RESET_REQUESTED',
+        { email, found: false }
+      );
+      return;
+    }
+
+    // Gerar token de reset (válido por 1 hora)
+    const resetToken = generateToken(
+      { userId: user.id, email: user.email, type: 'password-reset' },
+      '1h'
+    );
+
+    // TODO: Implementar envio de email
+    // Por enquanto, apenas logar o token (em produção, enviar por email)
+    console.log('\n===========================================');
+    console.log('🔐 TOKEN DE RESET DE SENHA');
+    console.log('===========================================');
+    console.log('Email:', email);
+    console.log('Token:', resetToken);
+    console.log('Link de reset:', `http://localhost:3001/reset-password?token=${resetToken}`);
+    console.log('===========================================\n');
+
+    auditLogger.logTransaction(
+      user.id,
+      'PASSWORD_RESET_REQUESTED',
+      { email, success: true }
+    );
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    try {
+      // Verificar e decodificar o token
+      const decoded = require('jsonwebtoken').verify(token, config.jwt.secret) as any;
+
+      if (decoded.type !== 'password-reset') {
+        throw new Error('Token inválido');
+      }
+
+      // Buscar usuário
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId }
+      });
+
+      if (!user) {
+        throw new Error('Usuário não encontrado');
+      }
+
+      // Hash da nova senha
+      const hashedPassword = await bcrypt.hash(newPassword, config.security.bcryptRounds);
+
+      // Atualizar senha
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashedPassword }
+      });
+
+      auditLogger.logTransaction(
+        user.id,
+        'PASSWORD_RESET',
+        { success: true }
+      );
+    } catch (error) {
+      if (error instanceof Error && error.name === 'TokenExpiredError') {
+        throw new Error('Token expirado. Solicite um novo reset de senha.');
+      }
+      throw new Error('Token inválido ou expirado');
+    }
+  }
 }

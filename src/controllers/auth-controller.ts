@@ -140,4 +140,88 @@ export class AuthController {
       res.status(400).json(response);
     }
   };
+
+  forgotPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        const response: ApiResponse<null> = {
+          success: false,
+          message: 'Email é obrigatório'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      // Por segurança, sempre retornar sucesso mesmo se o email não existir
+      // Isso previne enumeration attacks
+      await this.userService.requestPasswordReset(email);
+
+      const response: ApiResponse<null> = {
+        success: true,
+        message: 'Se o email existir em nossa base, você receberá instruções para resetar sua senha.'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      auditLogger.logError(error as Error, { 
+        operation: 'forgot_password',
+        email: req.body.email,
+        ip: req.ip 
+      });
+
+      const response: ApiResponse<null> = {
+        success: false,
+        message: 'Erro ao processar solicitação'
+      };
+
+      res.status(500).json(response);
+    }
+  };
+
+  resetPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { token, newPassword } = req.body;
+
+      if (!token || !newPassword) {
+        const response: ApiResponse<null> = {
+          success: false,
+          message: 'Token e nova senha são obrigatórios'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        const response: ApiResponse<null> = {
+          success: false,
+          message: 'A senha deve ter pelo menos 6 caracteres'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      await this.userService.resetPassword(token, newPassword);
+
+      const response: ApiResponse<null> = {
+        success: true,
+        message: 'Senha resetada com sucesso. Você já pode fazer login.'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      auditLogger.logError(error as Error, { 
+        operation: 'reset_password',
+        ip: req.ip 
+      });
+
+      const response: ApiResponse<null> = {
+        success: false,
+        message: error instanceof Error ? error.message : 'Erro ao resetar senha'
+      };
+
+      res.status(400).json(response);
+    }
+  };
 }

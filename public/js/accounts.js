@@ -5,11 +5,22 @@ let accountToDelete = null;
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
-    await checkAuth();
+    // Verificar autenticação
+    if (!checkAuth()) {
+        // Redirecionar para a página de login se não estiver autenticado
+        window.location.href = 'login.html';
+        return;
+    }
+    
     await loadUserInfo();
     await loadAccounts();
     setupEventListeners();
 });
+
+// Função utilitária para obter o token de autenticação
+function getAuthToken() {
+    return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+}
 
 // Setup event listeners
 function setupEventListeners() {
@@ -25,8 +36,21 @@ function setupEventListeners() {
 // Load user information
 async function loadUserInfo() {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch('/api/auth/me', {
+        const token = getAuthToken();
+        
+        // Verificar se existe um token válido
+        if (!token) {
+            console.error('Token de autenticação não encontrado');
+            showError('Sessão expirada. Por favor, faça login novamente.');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
+            return;
+        }
+        
+        // Usar API_BASE_URL
+        const baseUrl = window.API_BASE_URL;
+        const response = await fetch(`${baseUrl}/auth/me`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -36,6 +60,17 @@ async function loadUserInfo() {
             const data = await response.json();
             document.getElementById('userName').textContent = data.data.name;
             document.getElementById('userEmail').textContent = data.data.email;
+        } else {
+            // Verificar se é um erro de autenticação
+            if (response.status === 401) {
+                showError('Sessão expirada. Por favor, faça login novamente.');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+            
+            console.error(`Erro ao carregar informações do usuário: ${response.status}`);
         }
     } catch (error) {
         console.error('Error loading user info:', error);
@@ -45,8 +80,21 @@ async function loadUserInfo() {
 // Load accounts
 async function loadAccounts() {
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch('/api/accounts', {
+        const token = getAuthToken();
+        
+        // Verificar se existe um token válido
+        if (!token) {
+            console.error('Token de autenticação não encontrado');
+            showError('Sessão expirada. Por favor, faça login novamente.');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
+            return;
+        }
+        
+        // Usar API_BASE_URL
+        const baseUrl = window.API_BASE_URL;
+        const response = await fetch(`${baseUrl}/accounts`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -58,6 +106,17 @@ async function loadAccounts() {
             
             updateAccountStats();
             renderAccounts();
+        } else {
+            // Verificar se é um erro de autenticação
+            if (response.status === 401) {
+                showError('Sessão expirada. Por favor, faça login novamente.');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+            
+            console.error(`Erro ao carregar contas: ${response.status}`);
         }
     } catch (error) {
         console.error('Error loading accounts:', error);
@@ -272,20 +331,65 @@ async function handleAccountSubmit(e) {
     
     const formData = new FormData(e.target);
     const accountId = formData.get('id');
+    
+    // Validação do formulário
+    const name = formData.get('name');
+    if (!name || name.trim() === '') {
+        showError('O nome da conta é obrigatório');
+        return;
+    }
+    
+    const type = formData.get('type');
+    if (!type) {
+        showError('O tipo de conta é obrigatório');
+        return;
+    }
+    
+    // Garantir que o valor do balanço seja tratado corretamente
+    let balance = formData.get('balance');
+    if (balance) {
+        // Converter vírgula para ponto (formato brasileiro para internacional)
+        balance = balance.replace(',', '.');
+        balance = parseFloat(balance);
+        // Verificar se é um número válido
+        if (isNaN(balance)) {
+            showError('O valor do saldo deve ser um número válido');
+            return;
+        }
+    } else {
+        balance = 0;
+    }
+    
     const data = {
         name: formData.get('name'),
         type: formData.get('type'),
-        balance: parseFloat(formData.get('balance')),
+        balance: balance,
         description: formData.get('description') || null
     };
     
     console.log('Account data to submit:', data);
     
     try {
-        const token = localStorage.getItem('authToken');
+        const token = getAuthToken();
         console.log('Auth token:', token ? 'exists' : 'missing');
         
-        const url = accountId ? `/api/accounts/${accountId}` : '/api/accounts';
+        // Verificar se existe um token válido
+        if (!token) {
+            console.error('Token de autenticação não encontrado');
+            showError('Sessão expirada. Por favor, faça login novamente.');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
+            return;
+        }
+        
+        // Depurar valores enviados
+        console.log('Dados a serem enviados:', JSON.stringify(data));
+        console.log('ID da conta:', accountId ? accountId : 'Nova conta');
+        
+        // Usar API_BASE_URL
+        const baseUrl = window.API_BASE_URL;
+        const url = accountId ? `${baseUrl}/accounts/${accountId}` : `${baseUrl}/accounts`;
         const method = accountId ? 'PUT' : 'POST';
         
         console.log('Making request to:', url, 'with method:', method);
@@ -308,13 +412,41 @@ async function handleAccountSubmit(e) {
             await loadAccounts();
             showSuccess(accountId ? 'Conta atualizada com sucesso!' : 'Conta criada com sucesso!');
         } else {
-            const error = await response.json();
-            console.error('Error response:', error);
-            showError(error.message || 'Erro ao salvar conta');
+            // Verificar se é um erro de autenticação
+            if (response.status === 401) {
+                showError('Sessão expirada. Por favor, faça login novamente.');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+            
+            // Tentar analisar a resposta como JSON, com fallback para texto se falhar
+            try {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const text = await response.text();
+                    if (text) {
+                        const error = JSON.parse(text);
+                        console.error('Error response:', error);
+                        showError(error.message || `Erro ao salvar conta (${response.status})`);
+                    } else {
+                        console.error('Empty error response');
+                        showError(`Erro ao salvar conta (${response.status}): Resposta vazia`);
+                    }
+                } else {
+                    const text = await response.text();
+                    console.error('Error response (text):', text || 'No content');
+                    showError(`Erro ao salvar conta (${response.status}): ${text || 'Sem detalhes'}`);
+                }
+            } catch (parseError) {
+                console.error('Error parsing error response:', parseError);
+                showError(`Erro ao salvar conta (${response.status}): Não foi possível ler a resposta`);
+            }
         }
     } catch (error) {
         console.error('Error saving account:', error);
-        showError('Erro ao salvar conta');
+        showError('Erro ao salvar conta. Detalhes: ' + (error.message || 'Erro desconhecido'));
     }
 }
 
@@ -334,8 +466,21 @@ async function confirmDelete() {
     if (!accountToDelete) return;
     
     try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`/api/accounts/${accountToDelete}`, {
+        const token = getAuthToken();
+        
+        // Verificar se existe um token válido
+        if (!token) {
+            console.error('Token de autenticação não encontrado');
+            showError('Sessão expirada. Por favor, faça login novamente.');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
+            return;
+        }
+        
+        // Usar API_BASE_URL
+        const baseUrl = window.API_BASE_URL;
+        const response = await fetch(`${baseUrl}/accounts/${accountToDelete}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -347,12 +492,41 @@ async function confirmDelete() {
             await loadAccounts();
             showSuccess('Conta excluída com sucesso!');
         } else {
-            const error = await response.json();
-            showError(error.message || 'Erro ao excluir conta');
+            // Verificar se é um erro de autenticação
+            if (response.status === 401) {
+                showError('Sessão expirada. Por favor, faça login novamente.');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+            
+            // Tentar analisar a resposta como JSON, com fallback para texto se falhar
+            try {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const text = await response.text();
+                    if (text) {
+                        const error = JSON.parse(text);
+                        console.error('Error response:', error);
+                        showError(error.message || `Erro ao excluir conta (${response.status})`);
+                    } else {
+                        console.error('Empty error response');
+                        showError(`Erro ao excluir conta (${response.status}): Resposta vazia`);
+                    }
+                } else {
+                    const text = await response.text();
+                    console.error('Error response (text):', text || 'No content');
+                    showError(`Erro ao excluir conta (${response.status}): ${text || 'Sem detalhes'}`);
+                }
+            } catch (parseError) {
+                console.error('Error parsing error response:', parseError);
+                showError(`Erro ao excluir conta (${response.status}): Não foi possível ler a resposta`);
+            }
         }
     } catch (error) {
         console.error('Error deleting account:', error);
-        showError('Erro ao excluir conta');
+        showError('Erro ao excluir conta. Detalhes: ' + (error.message || 'Erro desconhecido'));
     } finally {
         accountToDelete = null;
     }

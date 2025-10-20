@@ -57,7 +57,7 @@ export const authenticateToken = (
   }
 };
 
-export const generateToken = (payload: { userId: string; email: string }): string => {
+export const generateToken = (payload: { userId: string; email: string; type?: string }, expiresIn?: string): string => {
   if (!config.jwt.secret) {
     throw new Error('JWT_SECRET is not configured');
   }
@@ -65,6 +65,6 @@ export const generateToken = (payload: { userId: string; email: string }): strin
   const secret: string = config.jwt.secret;
   
   return jwt.sign(payload, secret, {
-    expiresIn: config.jwt.expiresIn,
+    expiresIn: expiresIn || config.jwt.expiresIn,
   } as any);
 };

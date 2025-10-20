@@ -1,5 +1,10 @@
 // Configurações da API
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = 'http://localhost:3001/api';
+
+// Disponibilizar globalmente
+window.API_BASE_URL = API_BASE_URL;
+window.showError = Utils.showError.bind(Utils);
+window.showSuccess = Utils.showSuccess.bind(Utils);
 
 // Estado da aplicação
 const AppState = {
@@ -40,13 +45,93 @@ const Utils = {
     },
 
     showError(message) {
-        // Implementar toast/notification system
-        alert(message);
+        // Criar notificação de erro
+        this.createNotification(message, 'error');
     },
 
     showSuccess(message) {
-        // Implementar toast/notification system
-        alert(message);
+        // Criar notificação de sucesso
+        this.createNotification(message, 'success');
+    },
+
+    createNotification(message, type) {
+        // Remover notificações existentes
+        const existingNotifications = document.querySelectorAll('.notification');
+        existingNotifications.forEach(notification => notification.remove());
+
+        // Criar elemento de notificação
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+                <span>${message}</span>
+                <button class="notification-close" onclick="this.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+        // Adicionar estilos se não existirem
+        if (!document.getElementById('notification-styles')) {
+            const styles = document.createElement('style');
+            styles.id = 'notification-styles';
+            styles.textContent = `
+                .notification {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    z-index: 10000;
+                    max-width: 400px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    animation: slideIn 0.3s ease-out;
+                }
+                .notification-success {
+                    background: #d4edda;
+                    border: 1px solid #c3e6cb;
+                    color: #155724;
+                }
+                .notification-error {
+                    background: #f8d7da;
+                    border: 1px solid #f5c6cb;
+                    color: #721c24;
+                }
+                .notification-content {
+                    display: flex;
+                    align-items: center;
+                    padding: 12px 16px;
+                    gap: 8px;
+                }
+                .notification-close {
+                    background: none;
+                    border: none;
+                    color: inherit;
+                    cursor: pointer;
+                    margin-left: auto;
+                    padding: 4px;
+                    border-radius: 4px;
+                }
+                .notification-close:hover {
+                    background: rgba(0,0,0,0.1);
+                }
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(styles);
+        }
+
+        // Adicionar ao DOM
+        document.body.appendChild(notification);
+
+        // Remover automaticamente após 5 segundos
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 5000);
     },
 
     debounce(func, wait) {
