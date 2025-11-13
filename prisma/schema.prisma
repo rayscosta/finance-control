@@ -8,37 +8,40 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(cuid())
-  email        String        @unique
-  password     String
-  name         String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  accounts     Account[]
-  budgets      Budget[]
-  categories   Category[]
-  creditCards  CreditCard[]
-  transactions Transaction[]
+  id                     String        @id @default(cuid())
+  email                  String        @unique
+  password               String
+  name                   String
+  passwordResetToken     String?       @unique
+  passwordResetExpires   DateTime?     @db.Timestamptz(6)
+  createdAt              DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime      @updatedAt @db.Timestamptz(6)
+  accounts               Account[]
+  budgets                Budget[]
+  categories             Category[]
+  creditCards            CreditCard[]
+  goals                  Goal[]
+  recurringTransactions  Recurring[]
+  transactions           Transaction[]
 
   @@map("users")
 }
 
 model Account {
-  id            String        @id @default(cuid())
-  userId        String
-  name          String
-  type          AccountType
-  bank          String?
-  agency        String?
-  accountNumber String?
-  balance       Decimal       @db.Decimal(15, 2)
-  description   String?
-  isActive      Boolean       @default(true)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  user          User          @relation(fields: [userId], references: [id])
-  transactions  Transaction[]
+  id             String        @id @default(cuid())
+  userId         String
+  name           String
+  type           AccountType
+  initialBalance Decimal       @db.Decimal(15, 2)
+  currentBalance Decimal       @db.Decimal(15, 2)
+  currency       String        @default("BRL")
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime      @updatedAt @db.Timestamptz(6)
+  transactions   Transaction[]
+  user           User          @relation(fields: [userId], references: [id])
 
+  @@index([userId, isActive])
   @@map("accounts")
 }
 
@@ -52,12 +55,13 @@ model CreditCard {
   closingDay     Int
   dueDay         Int
   isActive       Boolean                 @default(true)
-  createdAt      DateTime                @default(now())
-  updatedAt      DateTime                @updatedAt
+  createdAt      DateTime                @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime                @updatedAt @db.Timestamptz(6)
   bills          CreditCardBill[]
   transactions   CreditCardTransaction[]
   user           User                    @relation(fields: [userId], references: [id])
 
+  @@index([userId, isActive])
   @@map("credit_cards")
 }
 
@@ -70,13 +74,15 @@ model Category {
   icon      String?
   isGlobal  Boolean      @default(false) // true para categorias do sistema
   isActive  Boolean      @default(true)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime     @updatedAt @db.Timestamptz(6)
 
   user         User?         @relation(fields: [userId], references: [id])
   transactions Transaction[]
   budgets      Budget[]
 
+  @@index([userId, isActive])
+  @@index([isGlobal, isActive])
   @@map("categories")
 }
 
@@ -88,17 +94,21 @@ model Transaction {
   amount          Decimal         @db.Decimal(15, 2)
   type            TransactionType
   description     String
-  date            DateTime
+  date            DateTime        @db.Timestamptz(6)
   referenceNumber String?
-  extractData     Json?
+  extractData     Json?           @db.JsonB
   isRecurring     Boolean         @default(false)
   recurringType   RecurringType?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime        @updatedAt @db.Timestamptz(6)
   account         Account         @relation(fields: [accountId], references: [id])
   category        Category?       @relation(fields: [categoryId], references: [id])
   user            User            @relation(fields: [userId], references: [id])
 
+  @@index([userId, date(sort: Desc)])
+  @@index([accountId, date(sort: Desc)])
+  @@index([categoryId, date(sort: Desc)])
+  @@index([date(sort: Desc)])
   @@map("transactions")
 }
 
@@ -107,17 +117,19 @@ model CreditCardTransaction {
   creditCardId       String
   amount             Decimal         @db.Decimal(15, 2)
   description        String
-  date               DateTime
+  date               DateTime        @db.Timestamptz(6)
   installments       Int             @default(1)
   currentInstallment Int             @default(1)
   merchant           String?
   category           String?
   billId             String?
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  createdAt          DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime        @updatedAt @db.Timestamptz(6)
   bill               CreditCardBill? @relation(fields: [billId], references: [id])
   creditCard         CreditCard      @relation(fields: [creditCardId], references: [id])
 
+  @@index([creditCardId, date(sort: Desc)])
+  @@index([billId])
   @@map("credit_card_transactions")
 }
 
@@ -125,15 +137,17 @@ model CreditCardBill {
   id           String                  @id @default(cuid())
   creditCardId String
   amount       Decimal                 @db.Decimal(15, 2)
-  dueDate      DateTime
-  closingDate  DateTime
+  dueDate      DateTime                @db.Timestamptz(6)
+  closingDate  DateTime                @db.Timestamptz(6)
   isPaid       Boolean                 @default(false)
-  paidAt       DateTime?
-  createdAt    DateTime                @default(now())
-  updatedAt    DateTime                @updatedAt
+  paidAt       DateTime?               @db.Timestamptz(6)
+  createdAt    DateTime                @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime                @updatedAt @db.Timestamptz(6)
   creditCard   CreditCard              @relation(fields: [creditCardId], references: [id])
   transactions CreditCardTransaction[]
 
+  @@index([creditCardId, dueDate(sort: Desc)])
+  @@index([creditCardId, isPaid])
   @@map("credit_card_bills")
 }
 
@@ -145,13 +159,53 @@ model Budget {
   spent      Decimal  @default(0) @db.Decimal(15, 2)
   month      Int
   year       Int
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @db.Timestamptz(6)
   category   Category @relation(fields: [categoryId], references: [id])
   user       User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, categoryId, month, year])
+  @@index([userId, year, month])
+  @@index([categoryId, year, month])
   @@map("budgets")
+}
+
+model Goal {
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  targetAmount  Decimal  @db.Decimal(15, 2)
+  currentAmount Decimal  @default(0) @db.Decimal(15, 2)
+  deadline      DateTime @db.Timestamptz(6)
+  createdAt     DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @db.Timestamptz(6)
+  user          User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, deadline])
+  @@map("goals")
+}
+
+model Recurring {
+  id          String        @id @default(cuid())
+  userId      String
+  accountId   String
+  categoryId  String?
+  amount      Decimal       @db.Decimal(15, 2)
+  type        TransactionType
+  description String
+  frequency   RecurringType
+  startDate   DateTime      @db.Timestamptz(6)
+  endDate     DateTime?     @db.Timestamptz(6)
+  isActive    Boolean       @default(true)
+  lastRun     DateTime?     @db.Timestamptz(6)
+  nextRun     DateTime      @db.Timestamptz(6)
+  createdAt   DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(6)
+  user        User          @relation(fields: [userId], references: [id])
+
+  @@index([userId, isActive, nextRun])
+  @@index([nextRun, isActive])
+  @@map("recurring_transactions")
 }
 
 model AuditLog {
@@ -160,12 +214,15 @@ model AuditLog {
   action    String
   entity    String
   entityId  String
-  oldValue  Json?
-  newValue  Json?
+  oldValue  Json?    @db.JsonB
+  newValue  Json?    @db.JsonB
   ipAddress String?
   userAgent String?
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
 
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([entity, entityId, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
   @@map("audit_logs")
 }
 
