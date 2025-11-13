@@ -2,8 +2,8 @@
 
 class AuthManager {
     constructor() {
-        // Usar a variável global ou fallback para localhost:3001
-        this.baseUrl = window.API_BASE_URL || 'http://localhost:3001/api';
+        // Usar a variável global ou fallback para localhost:3000
+        this.baseUrl = window.API_BASE_URL || 'http://localhost:3000/api';
         this.token = null;
     }
 

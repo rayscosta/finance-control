@@ -1,5 +1,5 @@
 // Configurações da API
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:3000/api';
 
 // Disponibilizar globalmente
 window.API_BASE_URL = API_BASE_URL;

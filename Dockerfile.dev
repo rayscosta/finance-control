@@ -1,0 +1,17 @@
+# Dockerfile para desenvolvimento
+FROM node:23-slim
+
+WORKDIR /app
+
+# Copiar tudo
+COPY . .
+
+# Instalar dependências
+RUN npm install --omit=dev --legacy-peer-deps && \
+    npx prisma generate
+
+# Expor porta
+EXPOSE 3000
+
+# Script de inicialização
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && npm run dev"]

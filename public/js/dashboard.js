@@ -33,7 +33,12 @@ function setupEventListeners() {
 // Load user information
 async function loadUserInfo() {
     try {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        if (!token) {
+            console.error('No auth token found');
+            return;
+        }
+        
         const response = await fetch('/api/auth/me', {
             headers: {
                 'Authorization': `Bearer ${token}`
