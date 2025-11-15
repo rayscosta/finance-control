@@ -1,59 +1,67 @@
 # Orientações do GitHub Copilot - Finance Control
 
-## Diretrizes Gerais de Desenvolvimento
+## Documentation
+- Use JSDoc for documenting functions and classes
+- Maintain an updated README.md with setup and usage instructions
+- Always document environment variables and configuration options
+- Include database setup instructions in the docs
+- Use English for all documentation
+- All documentation must be in the docs/ folder
 
-### Linguagem e Framework
-- Use JavaScript/TypeScript moderno (ES2022+)
-- Prefira TypeScript para maior segurança de tipos
-- Use async/await em vez de Promises encadeadas
-- Implemente tratamento adequado de erros com try/catch
+## General Development Guidelines
 
-### Padrões de Código
+### Language and Framework
+- Use modern JavaScript/TypeScript (ES2022+)
+- Prefer TypeScript for better type safety
+- Use async/await instead of chained Promises
+- Implement proper error handling with try/catch
 
-#### Nomenclatura
-- Use camelCase para variáveis e funções: `calculateBalance`, `userAccount`
-- Use PascalCase para classes e componentes: `TransactionService`, `AccountManager`
-- Use UPPER_CASE para constantes: `MAX_TRANSACTION_AMOUNT`, `DEFAULT_CURRENCY`
-- Use kebab-case para nomes de arquivos: `transaction-service.js`, `account-manager.ts`
-- Sempre use a língua inglês para tudo, inclusive comentários
+### Code Standards
 
-#### Estrutura de Arquivos
+#### Naming
+- Use camelCase for variables and functions: `calculateBalance`, `userAccount`
+- Use PascalCase for classes and components: `TransactionService`, `AccountManager`
+- Use UPPER_CASE for constants: `MAX_TRANSACTION_AMOUNT`, `DEFAULT_CURRENCY`
+- Use kebab-case for file names: `transaction-service.js`, `account-manager.ts`
+- Always use English for everything, including comments
+
+#### File Structure
 ```
 src/
-├── controllers/     # Controladores da API
-├── services/       # Lógica de negócio
-├── models/         # Modelos de dados
-├── utils/          # Utilitários e helpers
+├── controllers/     # API controllers
+├── services/       # Business logic
+├── models/         # Data models
+├── utils/          # Utilities and helpers
 ├── middleware/     # Middlewares
-├── config/         # Configurações
-└── tests/          # Testes unitários e integração
+├── config/         # Configurations
+└── tests/          # Unit and integration tests
 ```
 
-### Segurança Financeira
+### Financial Security
 
-#### Dados Sensíveis
-- NUNCA log valores monetários ou dados bancários em console.log
-- Use variáveis de ambiente para credenciais: `process.env.DB_PASSWORD`
-- Implemente validação rigorosa para valores monetários
-- Use bibliotecas como `decimal.js` ou `big.js` para cálculos precisos com dinheiro
+#### Sensitive Data
+- NEVER log monetary values or banking data in console.log
+- Use environment variables for credentials: `process.env.DB_PASSWORD`
+- Implement strict validation for monetary values
+- Use libraries like `decimal.js` or `big.js` for precise money calculations
 
-#### Validação de Entrada
-- Sempre valide e sanitize dados de entrada
-- Use schemas de validação (Joi, Yup, Zod)
-- Implemente rate limiting para APIs
-- Valide tipos de dados financeiros
+#### Input Validation
+- Always validate and sanitize input data
+- Use validation schemas (Joi, Yup, Zod)
+- Implement rate limiting for APIs
+- Validate financial data types
 
-### Padrões de Desenvolvimento
+### Development Standards
 
-#### Transações Financeiras
-- Use transações de banco de dados para operações críticas
-- Implemente logs de auditoria para todas as operações financeiras
-- Sempre use tipos decimais para valores monetários, nunca float
-- Implemente rollback automático em caso de falha
+#### Financial Transactions
+- Use database transactions for critical operations
+- Implement audit logs for all financial operations
+- Always use decimal types for monetary values, never float
+- Implement automatic rollback on failure
 
-#### Tratamento de Erros
+#### Error Handling
 ```javascript
-// Exemplo de tratamento adequado
+// Example of proper error handling
 try {
   const transaction = await processPayment(amount, account);
   await logTransaction(transaction);
@@ -73,34 +81,6 @@ try {
 - Use códigos de status HTTP corretos
 - Implemente autenticação e autorização
 
-### Testes
-
-#### Cobertura Obrigatória
-- Testes unitários para cálculos financeiros (100% coverage)
-- Testes de integração para APIs de pagamento
-- Testes de validação de entrada
-- Testes de rollback de transações
-
-#### Padrões de Teste
-```javascript
-describe('TransactionService', () => {
-  it('should calculate correct balance after transaction', async () => {
-    // Arrange
-    const initialBalance = new Decimal('1000.00');
-    const transactionAmount = new Decimal('150.50');
-    
-    // Act
-    const result = await transactionService.processTransaction(
-      accountId, 
-      transactionAmount
-    );
-    
-    // Assert
-    expect(result.balance).toEqual(initialBalance.minus(transactionAmount));
-  });
-});
-```
-
 ### Bibliotecas Recomendadas
 
 #### Essenciais
@@ -109,29 +89,10 @@ describe('TransactionService', () => {
 - `bcrypt` - Hash de senhas
 - `jsonwebtoken` - Autenticação JWT
 
-#### Banco de Dados
-- `mongoose` (MongoDB) ou `sequelize` (SQL)
-- `redis` - Cache e sessões
-- Sempre use transações para operações críticas
-
 #### Utilitários
 - `moment.js` ou `date-fns` - Manipulação de datas
 - `lodash` - Utilitários gerais
 - `winston` - Logging estruturado
-
-### Documentação
-
-#### Comentários
-- Documente funções que lidam com cálculos financeiros
-- Use JSDoc para APIs públicas
-- Comente regras de negócio complexas
-- Documente formatos de dados esperados
-
-#### README e Docs
-- Mantenha documentação atualizada
-- Inclua exemplos de uso da API
-- Documente variáveis de ambiente necessárias
-- Inclua instruções de setup do banco de dados
 
 ### Performance
 
@@ -157,48 +118,6 @@ describe('TransactionService', () => {
 6. **Use HTTPS em todas as comunicações**
 7. **Implemente 2FA para operações sensíveis**
 8. **Valide moedas e formatos monetários**
-
-### Exemplos de Código
-
-#### Modelo de Transação
-```typescript
-interface Transaction {
-  id: string;
-  accountId: string;
-  amount: Decimal;
-  currency: string;
-  type: 'credit' | 'debit';
-  description: string;
-  timestamp: Date;
-  status: 'pending' | 'completed' | 'failed';
-}
-```
-
-#### Serviço de Pagamento
-```typescript
-class PaymentService {
-  async processPayment(
-    fromAccount: string, 
-    toAccount: string, 
-    amount: Decimal
-  ): Promise<Transaction> {
-    const session = await db.startSession();
-    
-    try {
-      await session.withTransaction(async () => {
-        await this.debitAccount(fromAccount, amount, session);
-        await this.creditAccount(toAccount, amount, session);
-        return this.createTransactionRecord(fromAccount, toAccount, amount);
-      });
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      await session.endSession();
-    }
-  }
-}
-```
 
 ## Git Workflow e Branches
 

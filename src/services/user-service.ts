@@ -204,6 +204,19 @@ export class UserService {
       '1h'
     );
 
+    // Calcular data de expiração (1 hora a partir de agora)
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1);
+
+    // Salvar token no banco de dados
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: resetToken,
+        passwordResetExpires: expiresAt
+      }
+    });
+
     // TODO: Implementar envio de email
     // Por enquanto, apenas logar o token (em produção, enviar por email)
     console.log('\n===========================================');
@@ -211,7 +224,8 @@ export class UserService {
     console.log('===========================================');
     console.log('Email:', email);
     console.log('Token:', resetToken);
-    console.log('Link de reset:', `http://localhost:3001/reset-password?token=${resetToken}`);
+    console.log('Link de reset:', `http://localhost:8080/reset-password.html?token=${resetToken}`);
+    console.log('Expira em:', expiresAt.toLocaleString('pt-BR'));
     console.log('===========================================\n');
 
     auditLogger.logTransaction(
@@ -223,41 +237,60 @@ export class UserService {
 
   async resetPassword(token: string, newPassword: string): Promise<void> {
     try {
-      // Verificar e decodificar o token
+      // Verificar e decodificar o token JWT
       const decoded = require('jsonwebtoken').verify(token, config.jwt.secret) as any;
 
       if (decoded.type !== 'password-reset') {
         throw new Error('Token inválido');
       }
 
-      // Buscar usuário
-      const user = await prisma.user.findUnique({
-        where: { id: decoded.userId }
+      // Buscar usuário com o token
+      const user = await prisma.user.findFirst({
+        where: {
+          id: decoded.userId,
+          passwordResetToken: token
+        }
       });
 
       if (!user) {
-        throw new Error('Usuário não encontrado');
+        throw new Error('Token inválido ou já utilizado');
+      }
+
+      // Verificar se o token expirou
+      if (user.passwordResetExpires && user.passwordResetExpires < new Date()) {
+        throw new Error('Token expirado. Solicite um novo reset de senha.');
       }
 
       // Hash da nova senha
       const hashedPassword = await bcrypt.hash(newPassword, config.security.bcryptRounds);
 
-      // Atualizar senha
+      // Atualizar senha e limpar token de reset
       await prisma.user.update({
         where: { id: user.id },
-        data: { password: hashedPassword }
+        data: {
+          password: hashedPassword,
+          passwordResetToken: null,
+          passwordResetExpires: null
+        }
       });
 
       auditLogger.logTransaction(
         user.id,
-        'PASSWORD_RESET',
+        'PASSWORD_RESET_COMPLETED',
         { success: true }
       );
     } catch (error) {
-      if (error instanceof Error && error.name === 'TokenExpiredError') {
-        throw new Error('Token expirado. Solicite um novo reset de senha.');
+      if (error instanceof Error) {
+        if (error.name === 'TokenExpiredError') {
+          throw new Error('Token expirado. Solicite um novo reset de senha.');
+        }
+        if (error.name === 'JsonWebTokenError') {
+          throw new Error('Token inválido');
+        }
+        // Re-throw custom errors
+        throw error;
       }
-      throw new Error('Token inválido ou expirado');
+      throw new Error('Erro ao resetar senha');
     }
   }
 }

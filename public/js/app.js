@@ -1,23 +1,7 @@
 // Configurações da API
 const API_BASE_URL = 'http://localhost:3000/api';
 
-// Disponibilizar globalmente
-window.API_BASE_URL = API_BASE_URL;
-window.showError = Utils.showError.bind(Utils);
-window.showSuccess = Utils.showSuccess.bind(Utils);
-
-// Estado da aplicação
-const AppState = {
-    user: null,
-    currentPage: 'dashboard',
-    token: localStorage.getItem('authToken'),
-    accounts: [],
-    categories: [],
-    transactions: [],
-    dashboardData: null
-};
-
-// Utilitários
+// Utilitários (definir ANTES de usar)
 const Utils = {
     formatCurrency(value) {
         const number = typeof value === 'string' ? parseFloat(value) : value;
@@ -145,6 +129,22 @@ const Utils = {
             timeout = setTimeout(later, wait);
         };
     }
+};
+
+// Disponibilizar globalmente DEPOIS de definir
+window.API_BASE_URL = API_BASE_URL;
+window.showError = Utils.showError.bind(Utils);
+window.showSuccess = Utils.showSuccess.bind(Utils);
+
+// Estado da aplicação
+const AppState = {
+    user: null,
+    currentPage: 'dashboard',
+    token: localStorage.getItem('authToken'),
+    accounts: [],
+    categories: [],
+    transactions: [],
+    dashboardData: null
 };
 
 // API Client

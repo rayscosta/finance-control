@@ -48,6 +48,18 @@ export const loginSchema = Joi.object({
   })
 });
 
+export const updateProfileSchema = Joi.object({
+  name: Joi.string().min(2).max(100).optional().messages({
+    'string.min': 'Nome deve ter pelo menos 2 caracteres',
+    'string.max': 'Nome deve ter no máximo 100 caracteres'
+  }),
+  email: Joi.string().email().optional().messages({
+    'string.email': 'Email deve ter um formato válido'
+  })
+}).min(1).messages({
+  'object.min': 'Pelo menos um campo deve ser fornecido para atualização'
+});
+
 export const createAccountSchema = Joi.object({
   name: Joi.string().min(2).max(100).required().messages({
     'string.min': 'Nome da conta deve ter pelo menos 2 caracteres',
