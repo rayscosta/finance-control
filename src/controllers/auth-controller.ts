@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import prisma from '../database/client';
 import { UserService } from '../services/user-service';
 import { ApiResponse } from '../types';
 import { auditLogger } from '../utils/logger';
@@ -222,6 +223,81 @@ export class AuthController {
       };
 
       res.status(400).json(response);
+    }
+  };
+
+  deleteAccount = async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.user) {
+        const response: ApiResponse<null> = {
+          success: false,
+          message: 'Usuário não autenticado'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      // Validar senha antes de deletar
+      const { password } = req.body;
+
+      if (!password) {
+        const response: ApiResponse<null> = {
+          success: false,
+          message: 'Senha é obrigatória para confirmar a exclusão da conta'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      // Buscar usuário completo para validar senha
+      const user = await prisma.user.findUnique({
+        where: { id: req.user.userId }
+      });
+
+      if (!user) {
+        const response: ApiResponse<null> = {
+          success: false,
+          message: 'Usuário não encontrado'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      // Verificar senha
+      const bcrypt = require('bcrypt');
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+
+      if (!isPasswordValid) {
+        const response: ApiResponse<null> = {
+          success: false,
+          message: 'Senha incorreta'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      // Deletar conta
+      await this.userService.deleteUser(req.user.userId);
+
+      const response: ApiResponse<null> = {
+        success: true,
+        message: 'Conta deletada com sucesso'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      auditLogger.logError(error as Error, { 
+        operation: 'delete_account',
+        userId: req.user?.userId,
+        ip: req.ip 
+      });
+
+      const response: ApiResponse<null> = {
+        success: false,
+        message: error instanceof Error ? error.message : 'Erro ao deletar conta'
+      };
+
+      res.status(500).json(response);
     }
   };
 }

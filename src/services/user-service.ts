@@ -152,36 +152,6 @@ export class UserService {
     return user;
   }
 
-  private async createDefaultCategories(userId: string): Promise<void> {
-    const defaultCategories = [
-      // Categorias de receita
-      { name: 'Salário', type: 'INCOME' as const, color: '#4CAF50', icon: '💰' },
-      { name: 'Freelance', type: 'INCOME' as const, color: '#2196F3', icon: '💻' },
-      { name: 'Investimentos', type: 'INCOME' as const, color: '#FF9800', icon: '📈' },
-      { name: 'Outros', type: 'INCOME' as const, color: '#9C27B0', icon: '💵' },
-
-      // Categorias de despesa
-      { name: 'Alimentação', type: 'EXPENSE' as const, color: '#F44336', icon: '🍽️' },
-      { name: 'Transporte', type: 'EXPENSE' as const, color: '#FF5722', icon: '🚗' },
-      { name: 'Moradia', type: 'EXPENSE' as const, color: '#795548', icon: '🏠' },
-      { name: 'Saúde', type: 'EXPENSE' as const, color: '#E91E63', icon: '🏥' },
-      { name: 'Educação', type: 'EXPENSE' as const, color: '#3F51B5', icon: '📚' },
-      { name: 'Lazer', type: 'EXPENSE' as const, color: '#9C27B0', icon: '🎬' },
-      { name: 'Roupas', type: 'EXPENSE' as const, color: '#607D8B', icon: '👕' },
-      { name: 'Impostos', type: 'EXPENSE' as const, color: '#424242', icon: '📋' },
-      { name: 'Supermercado', type: 'EXPENSE' as const, color: '#4CAF50', icon: '🛒' },
-      { name: 'Farmácia', type: 'EXPENSE' as const, color: '#00BCD4', icon: '💊' },
-      { name: 'Cartão de Crédito', type: 'EXPENSE' as const, color: '#FF9800', icon: '💳' },
-    ];
-
-    await prisma.category.createMany({
-      data: defaultCategories.map(category => ({
-        ...category,
-        userId,
-      }))
-    });
-  }
-
   async requestPasswordReset(email: string): Promise<void> {
     // Buscar usuário pelo email
     const user = await prisma.user.findUnique({
@@ -203,6 +173,19 @@ export class UserService {
       { userId: user.id, email: user.email, type: 'password-reset' },
       '1h'
     );
+
+    // Definir expiração para 24 horas
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
+    // Salvar token no banco de dados
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: resetToken,
+        passwordResetExpires: expiresAt
+      }
+    });
 
     // TODO: Implementar envio de email
     // Por enquanto, apenas logar o token (em produção, enviar por email)
@@ -230,34 +213,71 @@ export class UserService {
         throw new Error('Token inválido');
       }
 
-      // Buscar usuário
-      const user = await prisma.user.findUnique({
-        where: { id: decoded.userId }
+      // Buscar usuário pelo token
+      const user = await prisma.user.findFirst({
+        where: {
+          id: decoded.userId,
+          passwordResetToken: token
+        }
       });
 
       if (!user) {
-        throw new Error('Usuário não encontrado');
+        throw new Error('Token inválido ou já utilizado');
+      }
+
+      // Verificar se o token não expirou
+      if (user.passwordResetExpires && user.passwordResetExpires < new Date()) {
+        throw new Error('Token expirado. Solicite um novo reset de senha.');
       }
 
       // Hash da nova senha
       const hashedPassword = await bcrypt.hash(newPassword, config.security.bcryptRounds);
 
-      // Atualizar senha
+      // Atualizar senha e invalidar token
       await prisma.user.update({
         where: { id: user.id },
-        data: { password: hashedPassword }
+        data: { 
+          password: hashedPassword,
+          passwordResetToken: null,
+          passwordResetExpires: null
+        }
       });
 
       auditLogger.logTransaction(
         user.id,
-        'PASSWORD_RESET',
+        'PASSWORD_RESET_COMPLETED',
         { success: true }
       );
     } catch (error) {
       if (error instanceof Error && error.name === 'TokenExpiredError') {
         throw new Error('Token expirado. Solicite um novo reset de senha.');
       }
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error('Token inválido ou expirado');
     }
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    // Verificar se o usuário existe
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      throw new Error('Usuário não encontrado');
+    }
+
+    // Deletar usuário (cascade deletes will handle related records)
+    await prisma.user.delete({
+      where: { id: userId }
+    });
+
+    auditLogger.logTransaction(
+      userId,
+      'USER_DELETED',
+      { entityType: 'user', entityId: userId, success: true }
+    );
   }
 }

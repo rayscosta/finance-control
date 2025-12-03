@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth-controller';
+import { authenticateToken } from '../middleware/auth';
 import { createUserSchema, loginSchema, validateSchema } from '../middleware/validation';
 
 const router = Router();
@@ -24,14 +25,14 @@ router.post('/login', validateSchema(loginSchema), authController.login);
  * @desc Obter perfil do usuário
  * @access Private
  */
-router.get('/profile', authController.getProfile);
+router.get('/profile', authenticateToken, authController.getProfile);
 
 /**
  * @route PUT /api/auth/profile
  * @desc Atualizar perfil do usuário
  * @access Private
  */
-router.put('/profile', authController.updateProfile);
+router.put('/profile', authenticateToken, authController.updateProfile);
 
 /**
  * @route POST /api/auth/forgot-password
@@ -52,6 +53,13 @@ router.post('/reset-password', authController.resetPassword);
  * @desc Obter dados do usuário autenticado
  * @access Private
  */
-router.get('/me', authController.getProfile);
+router.get('/me', authenticateToken, authController.getProfile);
+
+/**
+ * @route DELETE /api/auth/account
+ * @desc Deletar conta do usuário
+ * @access Private
+ */
+router.delete('/account', authenticateToken, authController.deleteAccount);
 
 export default router;
