@@ -5,12 +5,7 @@ let accountToDelete = null;
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
-    // Verificar autenticação
-    if (!checkAuth()) {
-        // Redirecionar para a página de login se não estiver autenticado
-        window.location.href = 'login.html';
-        return;
-    }
+    if (!await ensureAuth()) return;
     
     await loadUserInfo();
     await loadAccounts();

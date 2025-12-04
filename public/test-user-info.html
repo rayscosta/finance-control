@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Informações do Usuário</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .info {
+            background: #f0f0f0;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #logs {
+            background: #222;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Informações do Usuário</h1>
+    
+    <div class="info">
+        <h2>Status da Autenticação</h2>
+        <p><strong>Token no localStorage:</strong> <span id="localToken">-</span></p>
+        <p><strong>Token no sessionStorage:</strong> <span id="sessionToken">-</span></p>
+    </div>
+
+    <div class="info">
+        <h2>Dados do Usuário</h2>
+        <p><strong>Nome:</strong> <span id="userName">Carregando...</span></p>
+        <p><strong>Email:</strong> <span id="userEmail">Carregando...</span></p>
+    </div>
+
+    <div>
+        <button onclick="testLogin()">🔐 Fazer Login de Teste</button>
+        <button onclick="testUserInfo()">📊 Carregar Informações</button>
+        <button onclick="clearStorage()">🗑️ Limpar Storage</button>
+    </div>
+
+    <div class="info">
+        <h2>📋 Logs do Console</h2>
+        <div id="logs"></div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#f00' : type === 'success' ? '#0f0' : '#fff';
+            logsDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function checkStorage() {
+            const localToken = localStorage.getItem('authToken');
+            const sessionToken = sessionStorage.getItem('authToken');
+            
+            document.getElementById('localToken').textContent = localToken ? 
+                localToken.substring(0, 20) + '...' : 'Nenhum';
+            document.getElementById('sessionToken').textContent = sessionToken ? 
+                sessionToken.substring(0, 20) + '...' : 'Nenhum';
+            
+            log(`Token no localStorage: ${localToken ? 'Presente' : 'Ausente'}`);
+            log(`Token no sessionStorage: ${sessionToken ? 'Presente' : 'Ausente'}`);
+        }
+
+        async function testLogin() {
+            log('🔐 Iniciando login de teste...');
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@finance.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const data = await response.json();
+                log(`Resposta do login: ${response.status}`, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    localStorage.setItem('authToken', data.data.token);
+                    log('✅ Token salvo no localStorage', 'success');
+                    log(`Nome: ${data.data.user.name}`, 'success');
+                    log(`Email: ${data.data.user.email}`, 'success');
+                    checkStorage();
+                    await testUserInfo();
+                } else {
+                    log(`❌ Erro no login: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Erro de conexão: ${error.message}`, 'error');
+            }
+        }
+
+        async function testUserInfo() {
+            log('📊 Carregando informações do usuário...');
+            try {
+                const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+                
+                if (!token) {
+                    log('❌ Nenhum token encontrado!', 'error');
+                    document.getElementById('userName').textContent = 'Não autenticado';
+                    document.getElementById('userEmail').textContent = 'Não autenticado';
+                    return;
+                }
+
+                log('📡 Fazendo requisição para /api/auth/me...');
+                const response = await fetch(`${window.API_BASE_URL}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                log(`Resposta recebida: ${response.status}`, response.ok ? 'success' : 'error');
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Dados recebidos: ${JSON.stringify(data.data)}`, 'success');
+                    
+                    document.getElementById('userName').textContent = data.data.name;
+                    document.getElementById('userEmail').textContent = data.data.email;
+                    
+                    log(`Nome atualizado: ${data.data.name}`, 'success');
+                    log(`Email atualizado: ${data.data.email}`, 'success');
+                } else {
+                    const errorData = await response.json();
+                    log(`❌ Erro: ${errorData.message}`, 'error');
+                    document.getElementById('userName').textContent = 'Erro';
+                    document.getElementById('userEmail').textContent = 'Erro';
+                }
+            } catch (error) {
+                log(`❌ Erro: ${error.message}`, 'error');
+                document.getElementById('userName').textContent = 'Erro';
+                document.getElementById('userEmail').textContent = 'Erro';
+            }
+        }
+
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            log('🗑️ Storage limpo', 'success');
+            checkStorage();
+            document.getElementById('userName').textContent = 'Carregando...';
+            document.getElementById('userEmail').textContent = 'Carregando...';
+        }
+
+        // Executar ao carregar a página
+        window.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Página carregada');
+            checkStorage();
+            
+            // Se já tiver token, carregar info automaticamente
+            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            if (token) {
+                log('Token encontrado, carregando informações...', 'success');
+                testUserInfo();
+            } else {
+                log('⚠️ Nenhum token encontrado. Clique em "Fazer Login de Teste"');
+                document.getElementById('userName').textContent = 'Não autenticado';
+                document.getElementById('userEmail').textContent = 'Não autenticado';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -432,3 +432,13 @@ function logout() {
 function checkAuth() {
     return window.authManager ? window.authManager.isAuthenticated() : false;
 }
+
+// Função para garantir que o usuário está autenticado (redireciona se não estiver)
+async function ensureAuth() {
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    if (!token) {
+        window.location.href = '/login.html';
+        return false;
+    }
+    return true;
+}

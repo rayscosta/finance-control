@@ -2,6 +2,7 @@
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async () => {
+    if (!await ensureAuth()) return;
     await loadUserInfo();
     await loadAccounts();
     setupFileUpload();
@@ -10,35 +11,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Load user information
 async function loadUserInfo() {
     try {
+        console.log('🔍 [Import] Carregando informações do usuário...');
         const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
         
         if (!token) {
+            console.log('❌ [Import] Token não encontrado, redirecionando...');
             window.location.href = '/login.html';
             return;
         }
 
-        const response = await fetch('/api/auth/me', {
+        console.log('📡 [Import] Fazendo requisição para /api/auth/me');
+        const response = await fetch('http://localhost:3000/api/auth/me', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
 
+        console.log('📨 [Import] Resposta recebida:', response.status);
+
         if (response.ok) {
             const data = await response.json();
+            console.log('✅ [Import] Dados recebidos:', data);
             
             const userNameEl = document.getElementById('userName');
             const userEmailEl = document.getElementById('userEmail');
             
-            if (userNameEl) userNameEl.textContent = data.data.name;
-            if (userEmailEl) userEmailEl.textContent = data.data.email;
+            console.log('🔍 [Import] Elementos:', { userNameEl, userEmailEl });
+            
+            if (userNameEl) {
+                userNameEl.textContent = data.data.name;
+                console.log('✅ [Import] Nome atualizado:', data.data.name);
+            }
+            if (userEmailEl) {
+                userEmailEl.textContent = data.data.email;
+                console.log('✅ [Import] Email atualizado:', data.data.email);
+            }
         } else if (response.status === 401) {
-            // Token inválido ou expirado
+            console.log('❌ [Import] Token inválido, redirecionando...');
             localStorage.removeItem('authToken');
             sessionStorage.removeItem('authToken');
             window.location.href = '/login.html';
         }
     } catch (error) {
-        console.error('Erro ao carregar informações do usuário:', error);
+        console.error('❌ [Import] Erro ao carregar informações:', error);
     }
 }
 
@@ -47,7 +62,7 @@ async function loadAccounts() {
     try {
         const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
         
-        const response = await fetch('/api/accounts', {
+        const response = await fetch('http://localhost:3000/api/accounts', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

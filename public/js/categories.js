@@ -2,6 +2,7 @@
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async () => {
+    if (!await ensureAuth()) return;
     await loadUserInfo();
     await loadCategories();
 });
@@ -16,7 +17,7 @@ async function loadUserInfo() {
             return;
         }
 
-        const response = await fetch('/api/auth/me', {
+        const response = await fetch('http://localhost:3000/api/auth/me', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -46,7 +47,7 @@ async function loadCategories() {
     try {
         const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
         
-        const response = await fetch('/api/categories', {
+        const response = await fetch('http://localhost:3000/api/categories', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

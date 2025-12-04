@@ -7,7 +7,7 @@ let currentView = 'table';
 
 // Initialize page when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
-    await checkAuth();
+    if (!await ensureAuth()) return;
     await loadUserInfo();
     await loadCategories();
     await loadAccounts();
@@ -55,7 +55,7 @@ function setDefaultDate() {
 async function loadUserInfo() {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch('/api/auth/me', {
+        const response = await fetch('http://localhost:3000/api/auth/me', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -75,7 +75,7 @@ async function loadUserInfo() {
 async function loadCategories() {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch('/api/categories', {
+        const response = await fetch('http://localhost:3000/api/categories', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -187,7 +187,7 @@ function updateCategoriesForEdit() {
 async function loadAccounts() {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch('/api/accounts', {
+        const response = await fetch('http://localhost:3000/api/accounts', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -213,7 +213,7 @@ async function loadAccounts() {
 async function createDefaultAccount() {
     try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch('/api/accounts', {
+        const response = await fetch('http://localhost:3000/api/accounts', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -552,7 +552,7 @@ async function handleNewTransaction(e) {
     try {
         showLoading();
         const token = localStorage.getItem('authToken');
-        const response = await fetch('/api/transactions', {
+        const response = await fetch('http://localhost:3000/api/transactions', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,

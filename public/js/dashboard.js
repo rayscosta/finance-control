@@ -4,7 +4,7 @@ let currentPeriod = 'month';
 
 // Initialize dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
-    await checkAuth();
+    if (!await ensureAuth()) return;
     await loadUserInfo();
     await loadDashboardData();
     setupEventListeners();
@@ -33,28 +33,44 @@ function setupEventListeners() {
 // Load user information
 async function loadUserInfo() {
     try {
+        console.log('🔍 Carregando informações do usuário...');
         const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
         if (!token) {
-            console.error('No auth token found');
+            console.error('❌ No auth token found');
             return;
         }
         
-        const response = await fetch('/api/auth/me', {
+        console.log('📡 Fazendo requisição para /api/auth/me');
+        const response = await fetch('http://localhost:3000/api/auth/me', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
         
+        console.log('📨 Resposta recebida:', response.status);
+        
         if (response.ok) {
             const data = await response.json();
+            console.log('✅ Dados recebidos:', data);
+            
             const userNameEl = document.getElementById('userName');
             const userEmailEl = document.getElementById('userEmail');
             
-            if (userNameEl) userNameEl.textContent = data.data.name;
-            if (userEmailEl) userEmailEl.textContent = data.data.email;
+            console.log('🔍 Elementos encontrados:', { userNameEl, userEmailEl });
+            
+            if (userNameEl) {
+                userNameEl.textContent = data.data.name;
+                console.log('✅ Nome atualizado:', data.data.name);
+            }
+            if (userEmailEl) {
+                userEmailEl.textContent = data.data.email;
+                console.log('✅ Email atualizado:', data.data.email);
+            }
+        } else {
+            console.error('❌ Erro na resposta:', response.status);
         }
     } catch (error) {
-        console.error('Error loading user info:', error);
+        console.error('❌ Error loading user info:', error);
     }
 }
 
