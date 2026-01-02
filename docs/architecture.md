@@ -25,7 +25,7 @@ graph TB
         Middlewares --> CORS[CORS + Helmet]
     end
     
-    subgraph "Backend - Camada de Negócio"
+    subgraph "Backend - Camada de Negócio" as BackendLayer
         Controllers[Controllers]
         Controllers --> AuthCtrl[Auth Controller]
         Controllers --> AccCtrl[Account Controller]
@@ -43,7 +43,7 @@ graph TB
         Services --> BudgetSvc[Budget Service]
     end
     
-    subgraph "Data Layer"
+    subgraph "Data Layer" as DataLayer
         ORM[Prisma ORM]
         DB[(PostgreSQL<br/>Database)]
         
@@ -57,7 +57,7 @@ graph TB
         Models --> AuditLog[Audit Log]
     end
     
-    subgraph "External Services"
+    subgraph "External Services" as ExternalServices
         Email[Email Service<br/>Nodemailer]
         Storage[File Storage<br/>Local/S3]
     end
@@ -71,7 +71,7 @@ graph TB
         ENV --> DotEnv[.env File]
     end
     
-    subgraph "Monitoring & Logging"
+    subgraph "Monitoring & Logging" as MonitoringLogging
         Logger[Winston Logger]
         Logger --> AppLogs[Application Logs]
         Logger --> AuditLogs[Audit Trail]
@@ -98,11 +98,11 @@ graph TB
 
     style Frontend fill:#e1f5ff
     style APIGateway fill:#fff4e1
-    style "Backend - Camada de Negócio" fill:#e8f5e9
-    style "Data Layer" fill:#f3e5f5
-    style "External Services" fill:#fce4ec
+    style BackendLayer fill:#e8f5e9
+    style DataLayer fill:#f3e5f5
+    style ExternalServices fill:#fce4ec
     style Infrastructure fill:#fff3e0
-    style "Monitoring & Logging" fill:#e0f2f1
+    style MonitoringLogging fill:#e0f2f1
 ```
 
 ## 📊 Arquitetura em Camadas
