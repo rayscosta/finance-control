@@ -97,7 +97,7 @@ graph TB
     ENV --> ORM
 
     style Frontend fill:#e1f5ff
-    style "API Gateway" fill:#fff4e1
+    style APIGateway fill:#fff4e1
     style "Backend - Camada de Negócio" fill:#e8f5e9
     style "Data Layer" fill:#f3e5f5
     style "External Services" fill:#fce4ec
